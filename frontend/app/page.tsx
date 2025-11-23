@@ -60,9 +60,7 @@ export default function LandingPage() {
       >
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-primary p-1">
-              <Sparkles className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <Image src="/logo.png" alt="Capify" width={32} height={32} className="h-8 w-8" />
             <span className="text-xl font-bold tracking-tight">Capify</span>
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
@@ -592,9 +590,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
             <div className="col-span-2 lg:col-span-2">
               <div className="flex items-center gap-2 mb-4">
-                <div className="rounded-lg bg-primary p-1">
-                  <Sparkles className="h-5 w-5 text-primary-foreground" />
-                </div>
+                <Image src="/logo.png" alt="Capify" width={32} height={32} className="h-8 w-8" />
                 <span className="text-lg font-bold">Capify</span>
               </div>
               <p className="text-sm text-muted-foreground max-w-xs mb-6">
