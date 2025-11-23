@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { API_BASE_URL } from "@/lib/api";
 
 const signupSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -51,7 +52,7 @@ export default function SignupPage() {
         setServerError("");
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/signup`, {
+            const response = await fetch(`${API_BASE_URL}/auth/signup`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
