@@ -22,6 +22,10 @@ router.get('/user/profile', getUserProfile);
 router.get('/auth/google', initiateGmailAuth);
 router.get('/auth/google/callback', handleGmailCallback);
 
+// Authentication Routes
+router.post('/auth/login', require('../controllers/mainController').login);
+router.post('/auth/signup', require('../controllers/mainController').signup);
+
 router.post('/email/connect/outlook', (req, res) => {
     res.json({ success: true, message: 'Outlook connection initiated' });
 });

@@ -12,6 +12,9 @@ let emailConnection = {
     tokens: null
 };
 
+// In-memory user storage
+const users = [];
+
 const getDashboardStats = (req, res) => {
     res.json(stats);
 };
@@ -142,6 +145,30 @@ const sendEmail = async (req, res) => {
     }
 };
 
+const login = (req, res) => {
+    const { email, password } = req.body;
+    const user = users.find(u => u.email === email && u.password === password);
+
+    if (user) {
+        res.json({ success: true, user: { name: user.name, email: user.email }, token: 'mock-jwt-token' });
+    } else {
+        res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+};
+
+const signup = (req, res) => {
+    const { name, email, password } = req.body;
+
+    if (users.find(u => u.email === email)) {
+        return res.status(400).json({ success: false, message: 'User already exists' });
+    }
+
+    const newUser = { name, email, password };
+    users.push(newUser);
+
+    res.json({ success: true, user: { name, email }, token: 'mock-jwt-token' });
+};
+
 module.exports = {
     getDashboardStats,
     getInvestors,
@@ -152,4 +179,6 @@ module.exports = {
     handleGmailCallback,
     getEmailStatus,
     sendEmail,
+    login,
+    signup
 };

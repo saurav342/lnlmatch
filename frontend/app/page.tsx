@@ -61,12 +61,12 @@ export default function LandingPage() {
             </Link>
           </nav>
           <div className="flex items-center gap-4">
-            <Link href="/app">
+            <Link href="/login">
               <Button variant="ghost" size="sm">
                 Login
               </Button>
             </Link>
-            <Link href="/app">
+            <Link href="/signup">
               <Button size="sm" className="gap-2">
                 Get Started <ArrowRight className="h-4 w-4" />
               </Button>
@@ -105,7 +105,7 @@ export default function LandingPage() {
                 </motion.p>
 
                 <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center lg:justify-start">
-                  <Link href="/app">
+                  <Link href="/signup">
                     <Button size="lg" className="w-full sm:w-auto gap-2 text-base h-12 px-8 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
                       Start Fundraising Free <ArrowRight className="h-5 w-5" />
                     </Button>
@@ -267,12 +267,12 @@ export default function LandingPage() {
                   Join thousands of founders who are closing rounds faster with Capify.
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-                  <Link href="/app">
+                  <Link href="/signup">
                     <Button size="lg" variant="secondary" className="h-14 px-8 text-lg w-full sm:w-auto shadow-lg hover:scale-105 transition-transform">
                       Get Started for Free
                     </Button>
                   </Link>
-                  <Link href="/app">
+                  <Link href="/signup">
                     <Button size="lg" variant="outline" className="h-14 px-8 text-lg w-full sm:w-auto bg-transparent text-primary-foreground border-primary-foreground hover:bg-primary-foreground/10">
                       Schedule Demo
                     </Button>
