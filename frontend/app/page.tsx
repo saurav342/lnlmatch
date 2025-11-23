@@ -2,10 +2,26 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, TrendingUp, Zap, Globe, CheckCircle2 } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  TrendingUp,
+  Globe,
+  CheckCircle2,
+  Zap,
+  Users,
+  BarChart3,
+  Search,
+  Mail,
+  Star,
+  Twitter,
+  Linkedin,
+  Github
+} from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import Image from "next/image";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 // Animation variants
 const fadeInUp = {
@@ -49,15 +65,21 @@ export default function LandingPage() {
             </div>
             <span className="text-xl font-bold tracking-tight">Capify</span>
           </div>
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
             <Link href="#features" className="transition-colors hover:text-primary">
               Features
             </Link>
             <Link href="#how-it-works" className="transition-colors hover:text-primary">
               How it Works
             </Link>
+            <Link href="#testimonials" className="transition-colors hover:text-primary">
+              Testimonials
+            </Link>
             <Link href="#pricing" className="transition-colors hover:text-primary">
               Pricing
+            </Link>
+            <Link href="#faq" className="transition-colors hover:text-primary">
+              FAQ
             </Link>
           </nav>
           <div className="flex items-center gap-4">
@@ -115,6 +137,17 @@ export default function LandingPage() {
                       View Demo
                     </Button>
                   </Link>
+                </motion.div>
+
+                <motion.div variants={fadeInUp} className="pt-4 flex items-center justify-center lg:justify-start gap-4 text-sm text-muted-foreground">
+                  <div className="flex -space-x-2">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="h-8 w-8 rounded-full border-2 border-background bg-muted overflow-hidden">
+                        <Image src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" width={32} height={32} />
+                      </div>
+                    ))}
+                  </div>
+                  <p>Trusted by 500+ founders</p>
                 </motion.div>
               </motion.div>
 
@@ -177,71 +210,340 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Features Section */}
-        <section id="features" className="py-24 bg-muted/30 relative">
+        {/* Trusted By Section */}
+        <section className="py-12 border-y bg-muted/20">
           <div className="container mx-auto px-4 md:px-6">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-              variants={fadeInUp}
-              className="text-center mb-16"
-            >
-              <h2 className="text-3xl font-bold tracking-tight md:text-4xl mb-4">Everything you need to raise capital</h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Stop wasting time on spreadsheets and cold emails. Capify streamlines your entire fundraising process.
-              </p>
-            </motion.div>
+            <p className="text-center text-sm font-semibold text-muted-foreground mb-8 uppercase tracking-wider">
+              Trusted by innovative teams at
+            </p>
+            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
+              {['Acme Corp', 'GlobalTech', 'Nebula', 'Trio', 'FoxRun'].map((name, i) => (
+                <div key={i} className="text-xl md:text-2xl font-bold flex items-center gap-2">
+                  <div className="h-8 w-8 rounded bg-foreground/20"></div>
+                  {name}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-              variants={staggerContainer}
-              className="grid grid-cols-1 md:grid-cols-3 gap-8"
-            >
+        {/* Detailed Features Section (Zig-Zag) */}
+        <section id="features" className="py-24 relative overflow-hidden">
+          <div className="container mx-auto px-4 md:px-6 space-y-32">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <h2 className="text-3xl font-bold tracking-tight md:text-5xl mb-6">Complete Fundraising OS</h2>
+              <p className="text-xl text-muted-foreground">
+                Everything you need to go from &quot;open for investment&quot; to &quot;round closed&quot; in one unified platform.
+              </p>
+            </div>
+
+            {/* Feature 1 */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="space-y-6"
+              >
+                <div className="inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium bg-blue-500/10 text-blue-500">
+                  <Sparkles className="mr-2 h-4 w-4" /> AI Matchmaking
+                </div>
+                <h3 className="text-3xl md:text-4xl font-bold">Find investors who actually care.</h3>
+                <p className="text-lg text-muted-foreground">
+                  Stop spraying and praying. Our AI analyzes your pitch deck, industry, and stage to match you with investors who are actively looking for deals just like yours.
+                </p>
+                <ul className="space-y-3">
+                  {['Smart relevance scoring', 'Portfolio conflict checks', 'Warm intro pathways'].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3">
+                      <CheckCircle2 className="h-5 w-5 text-primary" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="relative rounded-2xl overflow-hidden border shadow-2xl bg-muted aspect-square lg:aspect-auto lg:h-[500px]"
+              >
+                <Image src="/feature_ai.png" alt="AI Matchmaking" fill className="object-cover" />
+              </motion.div>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center lg:flex-row-reverse">
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="space-y-6 lg:order-2"
+              >
+                <div className="inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium bg-green-500/10 text-green-500">
+                  <Search className="mr-2 h-4 w-4" /> Grant Discovery
+                </div>
+                <h3 className="text-3xl md:text-4xl font-bold">Non-dilutive capital at your fingertips.</h3>
+                <p className="text-lg text-muted-foreground">
+                  Don&apos;t give up equity if you don&apos;t have to. Access the world&apos;s largest database of startup grants, tax credits, and non-dilutive funding opportunities.
+                </p>
+                <ul className="space-y-3">
+                  {['Auto-eligibility checking', 'Deadline reminders', 'Application assistance'].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3">
+                      <CheckCircle2 className="h-5 w-5 text-primary" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="relative rounded-2xl overflow-hidden border shadow-2xl bg-muted aspect-square lg:aspect-auto lg:h-[500px] lg:order-1"
+              >
+                <Image src="/feature_grants.png" alt="Grant Discovery" fill className="object-cover" />
+              </motion.div>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="space-y-6"
+              >
+                <div className="inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium bg-orange-500/10 text-orange-500">
+                  <BarChart3 className="mr-2 h-4 w-4" /> CRM & Pipeline
+                </div>
+                <h3 className="text-3xl md:text-4xl font-bold">Close deals faster with built-in CRM.</h3>
+                <p className="text-lg text-muted-foreground">
+                  Manage your entire investor pipeline in one place. Track conversations, schedule follow-ups, and share your data room with a single link.
+                </p>
+                <ul className="space-y-3">
+                  {['Kanban board view', 'Automated email sequences', 'Document engagement tracking'].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3">
+                      <CheckCircle2 className="h-5 w-5 text-primary" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="relative rounded-2xl overflow-hidden border shadow-2xl bg-muted aspect-square lg:aspect-auto lg:h-[500px]"
+              >
+                <Image src="/feature_crm.png" alt="CRM" fill className="object-cover" />
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* Stats Section */}
+        <section className="py-20 bg-primary text-primary-foreground">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+              {[
+                { label: "Capital Raised", value: "$500M+" },
+                { label: "Active Investors", value: "12,000+" },
+                { label: "Startups Funded", value: "850+" },
+                { label: "Avg. Time to Close", value: "3 Weeks" },
+              ].map((stat, i) => (
+                <div key={i} className="space-y-2">
+                  <h4 className="text-4xl md:text-5xl font-bold">{stat.value}</h4>
+                  <p className="text-primary-foreground/80 font-medium">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* How It Works Section */}
+        <section id="how-it-works" className="py-24 bg-muted/30">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <h2 className="text-3xl font-bold tracking-tight md:text-4xl mb-4">How Capify Works</h2>
+              <p className="text-lg text-muted-foreground">
+                From profile creation to term sheet in four simple steps.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              {[
+                { icon: Users, title: "Create Profile", desc: "Build your startup profile and upload your pitch deck." },
+                { icon: Sparkles, title: "Get Matched", desc: "Our AI identifies the perfect investors for your round." },
+                { icon: Mail, title: "Connect", desc: "Reach out directly with warm intro templates." },
+                { icon: Zap, title: "Close", desc: "Manage due diligence and sign the deal." },
+              ].map((step, i) => (
+                <div key={i} className="relative flex flex-col items-center text-center space-y-4 p-6 bg-background rounded-2xl border shadow-sm hover:shadow-md transition-shadow">
+                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
+                    <step.icon className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-xl font-bold">{step.title}</h3>
+                  <p className="text-muted-foreground text-sm">{step.desc}</p>
+                  {i < 3 && (
+                    <div className="hidden md:block absolute top-1/2 -right-4 w-8 h-[2px] bg-border -translate-y-1/2 z-10" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials Section */}
+        <section id="testimonials" className="py-24">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <h2 className="text-3xl font-bold tracking-tight md:text-4xl mb-4">Loved by Founders</h2>
+              <p className="text-lg text-muted-foreground">
+                Don&apos;t just take our word for it. See what other founders are saying.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
                 {
-                  title: "AI Matchmaking",
-                  description: "Our algorithms analyze your startup profile to find investors who are actively looking for deals like yours.",
-                  image: "/feature_ai.png",
-                  color: "bg-blue-500/10 text-blue-500"
+                  quote: "Capify cut our fundraising time in half. The AI matches were incredibly accurate.",
+                  author: "Sarah J.",
+                  role: "CEO, TechFlow",
+                  avatar: "https://i.pravatar.cc/100?img=5"
                 },
                 {
-                  title: "Grant Discovery",
-                  description: "Access a comprehensive database of non-dilutive funding opportunities tailored to your industry and stage.",
-                  image: "/feature_grants.png",
-                  color: "bg-green-500/10 text-green-500"
+                  quote: "I found three grants I didn't even know existed. This platform pays for itself.",
+                  author: "Michael C.",
+                  role: "Founder, GreenEarth",
+                  avatar: "https://i.pravatar.cc/100?img=8"
                 },
                 {
-                  title: "CRM & Tracking",
-                  description: "Manage your investor pipeline, track outreach, and automate follow-ups with our built-in CRM tools.",
-                  image: "/feature_crm.png",
-                  color: "bg-orange-500/10 text-orange-500"
+                  quote: "The CRM features are a game changer. No more messy spreadsheets.",
+                  author: "Jessica L.",
+                  role: "COO, DataMind",
+                  avatar: "https://i.pravatar.cc/100?img=9"
                 }
-              ].map((feature, index) => (
-                <motion.div
-                  key={index}
-                  variants={fadeInUp}
-                  whileHover={{ y: -5 }}
-                  className="group relative overflow-hidden rounded-2xl border bg-background hover:shadow-xl transition-all duration-300"
-                >
-                  <div className="aspect-video relative overflow-hidden bg-muted">
-                    <Image
-                      src={feature.image}
-                      alt={feature.title}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-80"></div>
+              ].map((testimonial, i) => (
+                <div key={i} className="p-8 rounded-2xl bg-muted/20 border space-y-6">
+                  <div className="flex gap-1 text-yellow-500">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} className="h-5 w-5 fill-current" />
+                    ))}
                   </div>
-                  <div className="p-6 relative">
-                    <h3 className="mb-2 text-xl font-bold">{feature.title}</h3>
-                    <p className="text-muted-foreground">{feature.description}</p>
+                  <p className="text-lg italic">&quot;{testimonial.quote}&quot;</p>
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-full overflow-hidden">
+                      <Image src={testimonial.avatar} alt={testimonial.author} width={48} height={48} />
+                    </div>
+                    <div>
+                      <p className="font-bold">{testimonial.author}</p>
+                      <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                    </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
-            </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing Section */}
+        <section id="pricing" className="py-24 bg-muted/30">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <h2 className="text-3xl font-bold tracking-tight md:text-4xl mb-4">Simple, Transparent Pricing</h2>
+              <p className="text-lg text-muted-foreground">
+                Choose the plan that fits your stage. No hidden fees.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {[
+                {
+                  name: "Starter",
+                  price: "$0",
+                  desc: "Perfect for early-stage exploration.",
+                  features: ["Basic Profile", "3 Investor Matches/mo", "Grant Database Access", "Community Support"],
+                  cta: "Get Started",
+                  popular: false
+                },
+                {
+                  name: "Growth",
+                  price: "$49",
+                  desc: "For startups actively fundraising.",
+                  features: ["Enhanced Profile", "Unlimited Matches", "CRM Access", "Email Templates", "Priority Support"],
+                  cta: "Start Free Trial",
+                  popular: true
+                },
+                {
+                  name: "Scale",
+                  price: "$199",
+                  desc: "For teams needing advanced tools.",
+                  features: ["White-label Data Room", "API Access", "Dedicated Account Manager", "Legal Templates", "Custom Integrations"],
+                  cta: "Contact Sales",
+                  popular: false
+                }
+              ].map((plan, i) => (
+                <div key={i} className={`relative flex flex-col p-8 rounded-3xl border bg-background shadow-lg ${plan.popular ? 'border-primary ring-2 ring-primary/20 scale-105 z-10' : 'border-border'}`}>
+                  {plan.popular && (
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
+                      Most Popular
+                    </div>
+                  )}
+                  <div className="mb-8">
+                    <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-bold">{plan.price}</span>
+                      <span className="text-muted-foreground">/month</span>
+                    </div>
+                    <p className="text-muted-foreground mt-2 text-sm">{plan.desc}</p>
+                  </div>
+                  <ul className="space-y-4 mb-8 flex-1">
+                    {plan.features.map((feature, j) => (
+                      <li key={j} className="flex items-center gap-3 text-sm">
+                        <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button variant={plan.popular ? "default" : "outline"} className="w-full">
+                    {plan.cta}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section id="faq" className="py-24">
+          <div className="container mx-auto px-4 md:px-6 max-w-3xl">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold tracking-tight md:text-4xl mb-4">Frequently Asked Questions</h2>
+              <p className="text-lg text-muted-foreground">
+                Everything you need to know about Capify.
+              </p>
+            </div>
+
+            <Accordion type="single" collapsible className="w-full">
+              {[
+                { q: "How does the AI matching work?", a: "Our AI analyzes over 50 data points from your startup profile and compares them against our database of investor preferences, past deals, and thesis to generate a compatibility score." },
+                { q: "Is my data secure?", a: "Yes, we use bank-level encryption and never share your proprietary data without your explicit permission. You control who sees your pitch deck." },
+                { q: "Can I cancel anytime?", a: "Absolutely. There are no long-term contracts. You can cancel your subscription at any time from your dashboard." },
+                { q: "Do you take a success fee?", a: "No. We charge a flat monthly subscription fee. We do not take any equity or success fees from the capital you raise." },
+              ].map((item, i) => (
+                <AccordionItem key={i} value={`item-${i}`}>
+                  <AccordionTrigger className="text-left">{item.q}</AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground">
+                    {item.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
         </section>
 
@@ -285,9 +587,9 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/20 py-12 md:py-16">
+      <footer className="border-t bg-muted/20 pt-16 pb-8">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
             <div className="col-span-2 lg:col-span-2">
               <div className="flex items-center gap-2 mb-4">
                 <div className="rounded-lg bg-primary p-1">
@@ -298,6 +600,17 @@ export default function LandingPage() {
               <p className="text-sm text-muted-foreground max-w-xs mb-6">
                 The intelligent fundraising platform for modern startups. Connect, track, and close deals faster.
               </p>
+              <div className="flex gap-4">
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <Twitter className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <Linkedin className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <Github className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             <div>
               <h3 className="text-sm font-semibold mb-4">Product</h3>
@@ -305,6 +618,7 @@ export default function LandingPage() {
                 <li><Link href="#" className="hover:text-foreground transition-colors">Features</Link></li>
                 <li><Link href="#" className="hover:text-foreground transition-colors">Pricing</Link></li>
                 <li><Link href="#" className="hover:text-foreground transition-colors">Success Stories</Link></li>
+                <li><Link href="#" className="hover:text-foreground transition-colors">Enterprise</Link></li>
               </ul>
             </div>
             <div>
@@ -313,6 +627,7 @@ export default function LandingPage() {
                 <li><Link href="#" className="hover:text-foreground transition-colors">Blog</Link></li>
                 <li><Link href="#" className="hover:text-foreground transition-colors">Guides</Link></li>
                 <li><Link href="#" className="hover:text-foreground transition-colors">Help Center</Link></li>
+                <li><Link href="#" className="hover:text-foreground transition-colors">API Docs</Link></li>
               </ul>
             </div>
             <div>
@@ -321,16 +636,18 @@ export default function LandingPage() {
                 <li><Link href="#" className="hover:text-foreground transition-colors">About</Link></li>
                 <li><Link href="#" className="hover:text-foreground transition-colors">Careers</Link></li>
                 <li><Link href="#" className="hover:text-foreground transition-colors">Contact</Link></li>
+                <li><Link href="#" className="hover:text-foreground transition-colors">Partners</Link></li>
               </ul>
             </div>
           </div>
-          <div className="mt-12 border-t pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="border-t pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-xs text-muted-foreground">
               © 2024 Capify Inc. All rights reserved.
             </p>
             <div className="flex gap-6 text-xs text-muted-foreground">
               <Link href="#" className="hover:text-foreground transition-colors">Privacy Policy</Link>
               <Link href="#" className="hover:text-foreground transition-colors">Terms of Service</Link>
+              <Link href="#" className="hover:text-foreground transition-colors">Cookie Policy</Link>
             </div>
           </div>
         </div>

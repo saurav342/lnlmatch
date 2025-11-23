@@ -15,9 +15,7 @@ export default function SubscriptionPage() {
             <div className="mx-auto max-w-5xl space-y-8">
                 <div className="text-center">
                     <h1 className="text-3xl font-bold">Subscription Plans</h1>
-                    <p className="text-muted-foreground">
-                        Choose the plan that's right for your startup
-                    </p>
+                    <p className="text-muted-foreground">Choose the plan that&apos;s right for you</p>
                 </div>
 
                 {/* Current Plan */}

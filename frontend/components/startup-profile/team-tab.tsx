@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -59,7 +58,7 @@ export function TeamTab() {
     const addFounder = (data: FounderFormData) => {
         const newFounder = {
             ...data,
-            id: Date.now().toString(),
+            id: crypto.randomUUID(),
         };
         const updatedFounders = [...founders, newFounder];
         setFounders(updatedFounders);
