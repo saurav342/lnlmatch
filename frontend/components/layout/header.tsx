@@ -11,6 +11,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { MobileSidebar } from "./mobile-sidebar";
 
 export function Header() {
     const pathname = usePathname();
@@ -31,6 +32,7 @@ export function Header() {
 
     return (
         <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-border bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <MobileSidebar />
             {/* Breadcrumbs */}
             <div className="flex items-center gap-2 text-sm">
                 {breadcrumbs.map((crumb, index) => (
