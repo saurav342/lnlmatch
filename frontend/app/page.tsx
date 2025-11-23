@@ -61,7 +61,7 @@ export default function LandingPage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2">
             <Image src="/logo.png" alt="Capify" width={32} height={32} className="h-8 w-8" />
-            <span className="text-xl font-bold tracking-tight">Capify</span>
+            {/* <span className="text-xl font-bold tracking-tight">Capify</span> */}
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
             <Link href="#features" className="transition-colors hover:text-primary">
