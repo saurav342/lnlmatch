@@ -1,10 +1,13 @@
 [build]
   base = "frontend"
   publish = ".next"
-  command = "cd .. && npm install && npm run build"
+  command = "npm run build"
 
 [functions]
   directory = "../functions"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 [[redirects]]
   from = "/api/*"
