@@ -29,7 +29,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, MoreVertical, Heart, Mail, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
-import { fetchInvestors } from "@/lib/api";
+import { fetchInvestors, API_BASE_URL } from "@/lib/api";
 
 export default function AngelsPage() {
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
@@ -235,7 +235,7 @@ export default function AngelsPage() {
 
                                                                 try {
                                                                     // Check if connected
-                                                                    const statusRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/email/status`);
+                                                                    const statusRes = await fetch(`${API_BASE_URL}/email/status`);
                                                                     const status = await statusRes.json();
 
                                                                     if (!status.connected) {
@@ -246,7 +246,7 @@ export default function AngelsPage() {
                                                                     }
 
                                                                     // Send email
-                                                                    const sendRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/email/send`, {
+                                                                    const sendRes = await fetch(`${API_BASE_URL}/email/send`, {
                                                                         method: 'POST',
                                                                         headers: { 'Content-Type': 'application/json' },
                                                                         body: JSON.stringify({

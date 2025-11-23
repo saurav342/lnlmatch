@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CheckCircle2, Info, Lock, Mail, Shield, Server, Settings } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function EmailSettingsPage() {
     const [connectedProvider, setConnectedProvider] = useState<string | null>(null);
@@ -16,7 +17,7 @@ export default function EmailSettingsPage() {
         if (provider === 'Gmail') {
             try {
                 // Call backend to get auth URL
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/google`);
+                const response = await fetch(`${API_BASE_URL}/auth/google`);
                 const data = await response.json();
                 if (data.url) {
                     window.location.href = data.url;
@@ -45,7 +46,7 @@ export default function EmailSettingsPage() {
     useState(() => {
         const checkStatus = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/email/status`);
+                const response = await fetch(`${API_BASE_URL}/email/status`);
                 const data = await response.json();
                 if (data.connected && data.provider === 'Gmail') {
                     setConnectedProvider('Gmail');
