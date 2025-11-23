@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,8 @@ export default function EmailSettingsPage() {
     };
 
     // Check status on mount
-    useState(() => {
+    // Check status on mount
+    useEffect(() => {
         const checkStatus = async () => {
             try {
                 const response = await fetch(`${API_BASE_URL}/email/status`);
@@ -56,7 +57,7 @@ export default function EmailSettingsPage() {
             }
         };
         checkStatus();
-    });
+    }, []);
 
     return (
         <DashboardLayout>
