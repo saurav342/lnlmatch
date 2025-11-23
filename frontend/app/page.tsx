@@ -591,7 +591,7 @@ export default function LandingPage() {
             <div className="col-span-2 lg:col-span-2">
               <div className="flex items-center gap-2 mb-4">
                 <Image src="/logo.png" alt="Capify" width={32} height={32} className="h-8 w-8" />
-                <span className="text-lg font-bold">Capify</span>
+                {/* <span className="text-lg font-bold">Capify</span> */}
               </div>
               <p className="text-sm text-muted-foreground max-w-xs mb-6">
                 The intelligent fundraising platform for modern startups. Connect, track, and close deals faster.
