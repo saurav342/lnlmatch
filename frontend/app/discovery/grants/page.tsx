@@ -178,7 +178,7 @@ export default function GrantsPage() {
                                             <Badge variant="outline">
                                                 {formatCurrency(grant.amount.min)} - {formatCurrency(grant.amount.max)}
                                             </Badge>
-                                            {grant.tags.map((tag) => (
+                                            {grant.tags.map((tag: string) => (
                                                 <Badge key={tag} variant="secondary" className="text-xs">
                                                     {tag}
                                                 </Badge>

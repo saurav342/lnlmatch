@@ -16,7 +16,7 @@ export default function EmailSettingsPage() {
         if (provider === 'Gmail') {
             try {
                 // Call backend to get auth URL
-                const response = await fetch('http://localhost:5001/api/auth/google');
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/google`);
                 const data = await response.json();
                 if (data.url) {
                     window.location.href = data.url;
@@ -45,7 +45,7 @@ export default function EmailSettingsPage() {
     useState(() => {
         const checkStatus = async () => {
             try {
-                const response = await fetch('http://localhost:5001/api/email/status');
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/email/status`);
                 const data = await response.json();
                 if (data.connected && data.provider === 'Gmail') {
                     setConnectedProvider('Gmail');

@@ -191,7 +191,7 @@ export default function AngelsPage() {
                                                         <AvatarFallback>
                                                             {investor.name
                                                                 .split(" ")
-                                                                .map((n) => n[0])
+                                                                .map((n: string) => n[0])
                                                                 .join("")}
                                                         </AvatarFallback>
                                                     </Avatar>
@@ -205,7 +205,7 @@ export default function AngelsPage() {
                                             <TableCell>{investor.ticketSize}</TableCell>
                                             <TableCell>
                                                 <div className="flex gap-1">
-                                                    {investor.industries.map((industry) => (
+                                                    {investor.industries.map((industry: string) => (
                                                         <Badge key={industry} variant="secondary" className="text-xs">
                                                             {industry}
                                                         </Badge>
@@ -235,7 +235,7 @@ export default function AngelsPage() {
 
                                                                 try {
                                                                     // Check if connected
-                                                                    const statusRes = await fetch('http://localhost:5001/api/email/status');
+                                                                    const statusRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/email/status`);
                                                                     const status = await statusRes.json();
 
                                                                     if (!status.connected) {
@@ -246,7 +246,7 @@ export default function AngelsPage() {
                                                                     }
 
                                                                     // Send email
-                                                                    const sendRes = await fetch('http://localhost:5001/api/email/send', {
+                                                                    const sendRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/email/send`, {
                                                                         method: 'POST',
                                                                         headers: { 'Content-Type': 'application/json' },
                                                                         body: JSON.stringify({
