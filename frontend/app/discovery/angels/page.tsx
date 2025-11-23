@@ -28,54 +28,37 @@ import {
 } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, MoreVertical, Heart, Mail, ExternalLink } from "lucide-react";
-import { useState } from "react";
-
-// Mock data
-const investors = [
-    {
-        id: "1",
-        name: "Sarah Chen",
-        company: "Accel Partners",
-        location: "San Francisco, CA",
-        ticketSize: "$500K - $2M",
-        industries: ["AI/ML", "SaaS"],
-        avatar: "https://avatar.vercel.sh/sarah",
-        isWishlisted: false,
-    },
-    {
-        id: "2",
-        name: "Michael Roberts",
-        company: "Sequoia Capital",
-        location: "Menlo Park, CA",
-        ticketSize: "$1M - $5M",
-        industries: ["Fintech", "Enterprise"],
-        avatar: "https://avatar.vercel.sh/michael",
-        isWishlisted: true,
-    },
-    {
-        id: "3",
-        name: "Alex Kumar",
-        company: "Independent Angel",
-        location: "New York, NY",
-        ticketSize: "$100K - $500K",
-        industries: ["E-commerce", "Consumer"],
-        avatar: "https://avatar.vercel.sh/alex",
-        isWishlisted: false,
-    },
-    {
-        id: "4",
-        name: "Jennifer Lee",
-        company: "Andreessen Horowitz",
-        location: "San Francisco, CA",
-        ticketSize: "$2M - $10M",
-        industries: ["AI/ML", "Healthcare"],
-        avatar: "https://avatar.vercel.sh/jennifer",
-        isWishlisted: false,
-    },
-];
+import { useEffect, useState } from "react";
+import { fetchInvestors } from "@/lib/api";
 
 export default function AngelsPage() {
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
+    const [investors, setInvestors] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function loadInvestors() {
+            try {
+                const data = await fetchInvestors();
+                setInvestors(data);
+            } catch (error) {
+                console.error("Failed to load investors", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadInvestors();
+    }, []);
+
+    if (loading) {
+        return (
+            <DashboardLayout>
+                <div className="flex h-full items-center justify-center">
+                    <p>Loading investors...</p>
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     return (
         <DashboardLayout>
@@ -243,7 +226,48 @@ export default function AngelsPage() {
                                                                 ? "Remove from wishlist"
                                                                 : "Add to wishlist"}
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            onClick={async () => {
+                                                                if (!investor.email) {
+                                                                    alert("No email address available for this investor");
+                                                                    return;
+                                                                }
+
+                                                                try {
+                                                                    // Check if connected
+                                                                    const statusRes = await fetch('http://localhost:5001/api/email/status');
+                                                                    const status = await statusRes.json();
+
+                                                                    if (!status.connected) {
+                                                                        if (confirm("You need to connect your email account first. Go to settings?")) {
+                                                                            window.location.href = "/email-settings";
+                                                                        }
+                                                                        return;
+                                                                    }
+
+                                                                    // Send email
+                                                                    const sendRes = await fetch('http://localhost:5001/api/email/send', {
+                                                                        method: 'POST',
+                                                                        headers: { 'Content-Type': 'application/json' },
+                                                                        body: JSON.stringify({
+                                                                            to: investor.email,
+                                                                            subject: `Intro to ${investor.company}`,
+                                                                            body: `Hi ${investor.name},\n\nI would like to connect regarding...`
+                                                                        })
+                                                                    });
+
+                                                                    const sendData = await sendRes.json();
+                                                                    if (sendData.success) {
+                                                                        alert("Email sent successfully!");
+                                                                    } else {
+                                                                        alert("Failed to send email: " + sendData.message);
+                                                                    }
+                                                                } catch (error) {
+                                                                    console.error("Error sending email:", error);
+                                                                    alert("An error occurred while sending the email.");
+                                                                }
+                                                            }}
+                                                        >
                                                             <Mail className="mr-2 h-4 w-4" />
                                                             Send email
                                                         </DropdownMenuItem>

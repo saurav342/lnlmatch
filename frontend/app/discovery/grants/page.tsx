@@ -14,55 +14,29 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, ExternalLink, Calendar } from "lucide-react";
 
-// Mock data
-const grants = [
-    {
-        id: "1",
-        title: "Small Business Innovation Research (SBIR)",
-        organization: "National Science Foundation",
-        amount: { min: 150000, max: 1000000 },
-        type: "Government",
-        isEquityFree: true,
-        deadline: "2025-03-15",
-        tags: ["Equity-free", "R&D", "Technology"],
-        description: "Funding for small businesses engaged in R&D with potential for commercialization.",
-    },
-    {
-        id: "2",
-        title: "Climate Tech Innovation Grant",
-        organization: "CleanTech Alliance",
-        amount: { min: 50000, max: 250000 },
-        type: "Nonprofit",
-        isEquityFree: true,
-        deadline: "2025-04-01",
-        tags: ["Equity-free", "Climate", "Sustainability"],
-        description: "Support for startups developing clean technology solutions.",
-    },
-    {
-        id: "3",
-        title: "Women in Tech Founders Program",
-        organization: "Google for Startups",
-        amount: { min: 100000, max: 500000 },
-        type: "Corporate",
-        isEquityFree: false,
-        deadline: "2025-02-28",
-        tags: ["Women-led", "Technology", "Accelerator"],
-        description: "Funding and mentorship for women-led technology startups.",
-    },
-    {
-        id: "4",
-        title: "Healthcare Innovation Award",
-        organization: "Gates Foundation",
-        amount: { min: 500000, max: 2000000 },
-        type: "Nonprofit",
-        isEquityFree: true,
-        deadline: "2025-05-15",
-        tags: ["Equity-free", "Healthcare", "Global Health"],
-        description: "Support for innovative healthcare solutions addressing global health challenges.",
-    },
-];
+import { useEffect, useState } from "react";
+import { fetchGrants } from "@/lib/api";
+
+// ... imports ...
 
 export default function GrantsPage() {
+    const [grants, setGrants] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function loadGrants() {
+            try {
+                const data = await fetchGrants();
+                setGrants(data);
+            } catch (error) {
+                console.error("Failed to load grants", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadGrants();
+    }, []);
+
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat("en-US", {
             style: "currency",
@@ -79,6 +53,16 @@ export default function GrantsPage() {
             year: "numeric",
         });
     };
+
+    if (loading) {
+        return (
+            <DashboardLayout>
+                <div className="flex h-full items-center justify-center">
+                    <p>Loading grants...</p>
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     return (
         <DashboardLayout>

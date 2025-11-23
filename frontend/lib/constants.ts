@@ -52,6 +52,11 @@ export const NAVIGATION: NavigationItem[] = [
         ],
     },
     {
+        name: "Email Settings",
+        href: "/email-settings",
+        icon: "Settings", // Using Settings icon as placeholder, mapped in sidebar
+    },
+    {
         name: "Subscription",
         href: "/subscription",
         icon: "CreditCard",

@@ -8,14 +8,41 @@ import { OverviewTab } from "@/components/startup-profile/overview-tab";
 import { DetailsTab } from "@/components/startup-profile/details-tab";
 import { MediaTab } from "@/components/startup-profile/media-tab";
 import { TeamTab } from "@/components/startup-profile/team-tab";
-import { useState } from "react";
 import { Building2, FileText, Upload, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { fetchUserProfile } from "@/lib/api";
 
 export default function StartupProfilePage() {
     const [activeTab, setActiveTab] = useState("overview");
+    const [profile, setProfile] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function loadProfile() {
+            try {
+                const data = await fetchUserProfile();
+                setProfile(data);
+            } catch (error) {
+                console.error("Failed to load profile", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadProfile();
+    }, []);
 
     // Mock profile completion - in a real app, calculate based on filled fields
-    const profileCompletion = 65;
+    const profileCompletion = profile?.profileCompletion || 0;
+
+    if (loading) {
+        return (
+            <DashboardLayout>
+                <div className="flex h-full items-center justify-center">
+                    <p>Loading profile...</p>
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     const tabs = [
         { id: "overview", label: "Overview", icon: Building2 },

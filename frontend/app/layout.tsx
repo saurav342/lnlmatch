@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Launch & Lift - Startup Fundraising Platform",
+  title: "Capify - Startup Fundraising Platform",
   description: "Connect with investors and grants to accelerate your startup journey",
 };
 

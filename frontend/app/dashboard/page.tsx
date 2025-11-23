@@ -14,20 +14,50 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-// Mock data - in a real app, fetch from API
-const stats = {
-    potentialMatches: 24,
-    grantsAvailable: 156,
-    activeInvestors: 89,
-    profileViews: 432,
-    emailsSent: 12,
-};
+import { useEffect, useState } from "react";
+import { fetchDashboardStats } from "@/lib/api";
+
+// ... imports ...
 
 export default function DashboardPage() {
+    const [stats, setStats] = useState({
+        potentialMatches: 0,
+        grantsAvailable: 0,
+        activeInvestors: 0,
+        profileViews: 0,
+        emailsSent: 0,
+    });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function loadStats() {
+            try {
+                const data = await fetchDashboardStats();
+                setStats(data);
+            } catch (error) {
+                console.error("Failed to load stats", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadStats();
+    }, []);
+
     const hasMatches = stats.potentialMatches > 0;
+
+    if (loading) {
+        return (
+            <DashboardLayout>
+                <div className="flex h-full items-center justify-center">
+                    <p>Loading dashboard...</p>
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     return (
         <DashboardLayout>
+
             <div className="space-y-6">
                 {/* Header */}
                 <div>

@@ -4,6 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { NAVIGATION } from "@/lib/constants";
+
+// Update NAVIGATION constant in lib/constants.ts instead of hardcoding here if possible, 
+// but since I don't see that file, I will check if I need to update it there.
+// Wait, the sidebar uses NAVIGATION from "@/lib/constants". I should check that file first.
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -45,6 +49,7 @@ const iconMap: Record<string, any> = {
     Mail,
     LineChart,
     CreditCard,
+    Settings: Settings, // Explicitly map Settings icon
 };
 
 export function Sidebar() {
