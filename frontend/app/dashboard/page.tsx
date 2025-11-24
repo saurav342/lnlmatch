@@ -129,9 +129,8 @@ export default function DashboardPage() {
                                 <h3 className="mt-2 text-2xl font-bold">
                                     {stats.grantsAvailable}
                                 </h3>
-                                <p className="mt-1 flex items-center gap-1 text-xs text-emerald-600">
-                                    <TrendingUp className="h-3 w-3" />
-                                    +12 this week
+                                <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                                    Total available
                                 </p>
                             </div>
                             <div className="rounded-full bg-emerald-100 p-2 dark:bg-emerald-950">
@@ -149,9 +148,8 @@ export default function DashboardPage() {
                                 <h3 className="mt-2 text-2xl font-bold">
                                     {stats.activeInvestors}
                                 </h3>
-                                <p className="mt-1 flex items-center gap-1 text-xs text-blue-600">
-                                    <TrendingUp className="h-3 w-3" />
-                                    +5 this week
+                                <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                                    Total active
                                 </p>
                             </div>
                             <div className="rounded-full bg-blue-100 p-2 dark:bg-blue-950">

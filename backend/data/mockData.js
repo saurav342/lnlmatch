@@ -1,11 +1,11 @@
 // backend/data/mockData.js
 
 const stats = {
-    potentialMatches: 24,
-    grantsAvailable: 156,
-    activeInvestors: 89,
-    profileViews: 432,
-    emailsSent: 12,
+    potentialMatches: 0,
+    grantsAvailable: 0,
+    activeInvestors: 0,
+    profileViews: 0,
+    emailsSent: 0,
 };
 
 const investors = [

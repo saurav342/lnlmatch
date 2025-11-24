@@ -32,6 +32,7 @@ export default function SignupPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [serverError, setServerError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
 
     const {
         register,
@@ -65,7 +66,10 @@ export default function SignupPage() {
             const responseData = await response.json();
 
             if (response.ok) {
-                router.push("/dashboard");
+                setSuccessMessage("Account created successfully! Redirecting to login...");
+                setTimeout(() => {
+                    router.push("/login");
+                }, 2000);
             } else {
                 setServerError(responseData.message || "Failed to create account");
             }
@@ -117,6 +121,11 @@ export default function SignupPage() {
                             {serverError && (
                                 <Alert variant="destructive">
                                     <AlertDescription>{serverError}</AlertDescription>
+                                </Alert>
+                            )}
+                            {successMessage && (
+                                <Alert className="border-green-500 text-green-500 bg-green-500/10">
+                                    <AlertDescription>{successMessage}</AlertDescription>
                                 </Alert>
                             )}
 
