@@ -3,31 +3,56 @@
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
 
 export async function fetchDashboardStats() {
-    const res = await fetch(`${API_BASE_URL}/dashboard/stats`);
+    const token = localStorage.getItem('authToken');
+    const res = await fetch(`${API_BASE_URL}/dashboard/stats`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
     if (!res.ok) throw new Error('Failed to fetch stats');
     return res.json();
 }
 
 export async function fetchInvestors() {
-    const res = await fetch(`${API_BASE_URL}/investors`);
+    const token = localStorage.getItem('authToken');
+    const res = await fetch(`${API_BASE_URL}/investors`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
     if (!res.ok) throw new Error('Failed to fetch investors');
     return res.json();
 }
 
 export async function fetchGrants() {
-    const res = await fetch(`${API_BASE_URL}/grants`);
+    const token = localStorage.getItem('authToken');
+    const res = await fetch(`${API_BASE_URL}/grants`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
     if (!res.ok) throw new Error('Failed to fetch grants');
     return res.json();
 }
 
 export async function fetchCampaigns() {
-    const res = await fetch(`${API_BASE_URL}/crm/campaigns`);
+    const token = localStorage.getItem('authToken');
+    const res = await fetch(`${API_BASE_URL}/crm/campaigns`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
     if (!res.ok) throw new Error('Failed to fetch campaigns');
     return res.json();
 }
 
 export async function fetchUserProfile() {
-    const res = await fetch(`${API_BASE_URL}/user/profile`);
+    const token = localStorage.getItem('authToken');
+    const res = await fetch(`${API_BASE_URL}/user/profile`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
     if (!res.ok) throw new Error('Failed to fetch user profile');
     return res.json();
 }

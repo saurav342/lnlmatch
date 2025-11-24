@@ -54,6 +54,10 @@ export default function LoginPage() {
             const responseData = await response.json();
 
             if (response.ok) {
+                // Store authentication data
+                localStorage.setItem('authToken', responseData.token);
+                localStorage.setItem('user', JSON.stringify(responseData.user));
+
                 router.push("/dashboard");
             } else {
                 setServerError(responseData.message || "Invalid credentials");
