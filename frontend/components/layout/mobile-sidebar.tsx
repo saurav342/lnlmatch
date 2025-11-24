@@ -39,7 +39,8 @@ import {
     ChevronRight,
     Menu,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { fetchUserProfile } from "@/lib/api";
 
 // Icon mapping
 const iconMap: Record<string, any> = {
@@ -60,6 +61,20 @@ export function MobileSidebar() {
     const pathname = usePathname();
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
     const [open, setOpen] = useState(false);
+    const [userProfile, setUserProfile] = useState<any>(null);
+
+    // Fetch user profile on mount
+    useEffect(() => {
+        async function loadProfile() {
+            try {
+                const profile = await fetchUserProfile();
+                setUserProfile(profile);
+            } catch (error) {
+                console.error("Failed to load profile", error);
+            }
+        }
+        loadProfile();
+    }, []);
 
     const toggleExpand = (name: string) => {
         setExpandedItems((prev) =>
@@ -169,12 +184,16 @@ export function MobileSidebar() {
                                 >
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage src="https://avatar.vercel.sh/user.png" />
-                                        <AvatarFallback>JD</AvatarFallback>
+                                        <AvatarFallback>
+                                            {userProfile?.name?.substring(0, 2).toUpperCase() || 'U'}
+                                        </AvatarFallback>
                                     </Avatar>
                                     <div className="flex flex-1 flex-col items-start text-left">
-                                        <span className="text-sm font-medium">John Doe</span>
+                                        <span className="text-sm font-medium">
+                                            {userProfile?.name || 'Loading...'}
+                                        </span>
                                         <span className="text-xs text-muted-foreground">
-                                            john@startup.com
+                                            {userProfile?.email || ''}
                                         </span>
                                     </div>
                                     <ChevronDown className="h-4 w-4 text-muted-foreground" />

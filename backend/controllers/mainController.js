@@ -15,6 +15,9 @@ let emailConnection = {
 // In-memory user storage
 const users = [];
 
+// Track which token belongs to which user
+const userSessions = {}; // Map: token -> user
+
 const getDashboardStats = (req, res) => {
     res.json(stats);
 };
@@ -32,7 +35,26 @@ const getCampaigns = (req, res) => {
 };
 
 const getUserProfile = (req, res) => {
-    res.json(userProfile);
+    // Extract token from Authorization header
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1]; // "Bearer TOKEN"
+
+    if (!token || !userSessions[token]) {
+        return res.status(401).json({
+            success: false,
+            message: 'Unauthorized'
+        });
+    }
+
+    const user = userSessions[token];
+
+    res.json({
+        name: user.name,
+        email: user.email,
+        profileCompletion: 65,
+        currentPlan: "Free",
+        aiCreditsRemaining: 15,
+    });
 };
 
 const initiateGmailAuth = (req, res) => {
@@ -150,7 +172,10 @@ const login = (req, res) => {
     const user = users.find(u => u.email === email && u.password === password);
 
     if (user) {
-        res.json({ success: true, user: { name: user.name, email: user.email }, token: 'mock-jwt-token' });
+        const token = 'mock-jwt-token-' + Date.now(); // Unique token
+        userSessions[token] = user; // Map token to user
+
+        res.json({ success: true, user: { name: user.name, email: user.email }, token });
     } else {
         res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
@@ -166,7 +191,10 @@ const signup = (req, res) => {
     const newUser = { name, email, password };
     users.push(newUser);
 
-    res.json({ success: true, user: { name, email }, token: 'mock-jwt-token' });
+    const token = 'mock-jwt-token-' + Date.now(); // Unique token
+    userSessions[token] = newUser; // Map token to user
+
+    res.json({ success: true, user: { name, email }, token });
 };
 
 module.exports = {

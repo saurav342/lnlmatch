@@ -177,5 +177,5 @@ module.exports = {
     investors,
     grants,
     campaigns,
-    userProfile,
+    // userProfile removed - now fetched from actual user data
 };
