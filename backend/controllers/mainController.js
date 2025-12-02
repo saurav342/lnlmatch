@@ -1,5 +1,7 @@
 // backend/controllers/mainController.js
 const { stats, investors, grants, campaigns, userProfile } = require('../data/mockData');
+const User = require('../admin/models/User');
+const jwt = require('jsonwebtoken');
 
 const { OAuth2Client } = require('google-auth-library');
 const { google } = require('googleapis');
@@ -11,12 +13,6 @@ let emailConnection = {
     email: null,
     tokens: null
 };
-
-// In-memory user storage
-const users = [];
-
-// Track which token belongs to which user
-const userSessions = {}; // Map: token -> user
 
 const getDashboardStats = (req, res) => {
     res.json(stats);
@@ -34,27 +30,42 @@ const getCampaigns = (req, res) => {
     res.json(campaigns);
 };
 
-const getUserProfile = (req, res) => {
+const getUserProfile = async (req, res) => {
     // Extract token from Authorization header
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // "Bearer TOKEN"
 
-    if (!token || !userSessions[token]) {
+    if (!token) {
         return res.status(401).json({
             success: false,
             message: 'Unauthorized'
         });
     }
 
-    const user = userSessions[token];
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+        const user = await User.findById(decoded.id).select('-password');
 
-    res.json({
-        name: user.name,
-        email: user.email,
-        profileCompletion: 65,
-        currentPlan: "Free",
-        aiCreditsRemaining: 15,
-    });
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        res.json({
+            name: user.name,
+            email: user.email,
+            profileCompletion: user.profileCompletion || 65,
+            currentPlan: user.subscriptionPlan === 'free' ? 'Free' : user.subscriptionPlan === 'pro' ? 'Pro' : 'Enterprise',
+            aiCreditsRemaining: 15, // Mock for now
+        });
+    } catch (error) {
+        return res.status(401).json({
+            success: false,
+            message: 'Invalid token'
+        });
+    }
 };
 
 const initiateGmailAuth = (req, res) => {
@@ -167,34 +178,77 @@ const sendEmail = async (req, res) => {
     }
 };
 
-const login = (req, res) => {
+const login = async (req, res) => {
     const { email, password } = req.body;
-    const user = users.find(u => u.email === email && u.password === password);
 
-    if (user) {
-        const token = 'mock-jwt-token-' + Date.now(); // Unique token
-        userSessions[token] = user; // Map token to user
+    try {
+        const user = await User.findOne({ email });
 
-        res.json({ success: true, user: { name: user.name, email: user.email }, token });
-    } else {
-        res.status(401).json({ success: false, message: 'Invalid credentials' });
+        if (user && user.password === password) {
+            // Update last login
+            user.lastLogin = new Date();
+            await user.save();
+
+            const token = jwt.sign(
+                { id: user._id, email: user.email, userType: user.userType },
+                process.env.JWT_SECRET || 'secret',
+                { expiresIn: '30d' }
+            );
+
+            res.json({
+                success: true,
+                user: {
+                    name: user.name,
+                    email: user.email,
+                    userType: user.userType
+                },
+                token
+            });
+        } else {
+            res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
-const signup = (req, res) => {
+const signup = async (req, res) => {
     const { name, email, password } = req.body;
 
-    if (users.find(u => u.email === email)) {
-        return res.status(400).json({ success: false, message: 'User already exists' });
+    try {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: 'User already exists' });
+        }
+
+        const newUser = await User.create({
+            name,
+            email,
+            password, // Storing plaintext for now as per requirement
+            userType: 'founder', // Default type
+            signupDate: new Date()
+        });
+
+        const token = jwt.sign(
+            { id: newUser._id, email: newUser.email, userType: newUser.userType },
+            process.env.JWT_SECRET || 'secret',
+            { expiresIn: '30d' }
+        );
+
+        res.json({
+            success: true,
+            user: {
+                name: newUser.name,
+                email: newUser.email,
+                userType: newUser.userType
+            },
+            token
+        });
+    } catch (error) {
+        console.error('Signup error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
     }
-
-    const newUser = { name, email, password };
-    users.push(newUser);
-
-    const token = 'mock-jwt-token-' + Date.now(); // Unique token
-    userSessions[token] = newUser; // Map token to user
-
-    res.json({ success: true, user: { name, email }, token });
 };
 
 module.exports = {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { NAVIGATION } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -59,6 +59,7 @@ const iconMap: Record<string, any> = {
 
 export function Navbar() {
     const pathname = usePathname();
+    const router = useRouter();
     const { theme, setTheme } = useTheme();
     const [userProfile, setUserProfile] = useState<any>(null);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -75,6 +76,12 @@ export function Navbar() {
         }
         loadProfile();
     }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        router.push('/login');
+    };
 
     const isActive = (href: string) => {
         return pathname === href || pathname.startsWith(href + "/");
@@ -245,7 +252,7 @@ export function Navbar() {
                                         <span>Settings</span>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="rounded-lg cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10">
+                                    <DropdownMenuItem onClick={handleLogout} className="rounded-lg cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10">
                                         <LogOut className="mr-2 h-4 w-4" />
                                         <span>Log out</span>
                                     </DropdownMenuItem>

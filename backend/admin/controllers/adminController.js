@@ -74,6 +74,22 @@ const getDashboardStats = async (req, res) => {
             .limit(10)
             .populate('adminId', 'name email');
 
+        // Get user type breakdown
+        const userTypeBreakdown = await User.aggregate([
+            {
+                $group: {
+                    _id: '$userType',
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        // Get recent signups list (for the table)
+        const recentSignupsList = await User.find()
+            .sort({ signupDate: -1 })
+            .limit(5)
+            .select('name email userType accountStatus signupDate');
+
         res.json({
             success: true,
             data: {
@@ -86,10 +102,12 @@ const getDashboardStats = async (req, res) => {
                     verifiedInvestors,
                     mrr,
                     arr,
-                    recentSignups
+                    recentSignupsCount: recentSignups // Renamed to avoid conflict
                 },
                 subscriptionBreakdown,
+                userTypeBreakdown,
                 signupTrend,
+                recentSignupsList,
                 recentActivity
             }
         });

@@ -20,32 +20,31 @@ const verifyAdmin = async (req, res, next) => {
 
         const token = authHeader.split(' ')[1];
 
-        // For now, we'll use a simple token check
-        // In production, you should use proper JWT verification
-        if (!token || !token.startsWith('mock-jwt-token-')) {
+        // Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+
+        // Get user from DB
+        const user = await User.findById(decoded.id).select('-password');
+
+        if (!user) {
             return res.status(401).json({
                 success: false,
-                message: 'Invalid token'
+                message: 'User not found'
             });
         }
 
-        // In a real implementation, decode JWT and get user ID
-        // const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        // const user = await User.findById(decoded.userId);
+        // Check if user is admin
+        if (user.userType !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. Admin privileges required.'
+            });
+        }
 
-        // For now, we'll check if user exists in the in-memory store
-        // This is a temporary solution - in production use proper DB lookup
-
-        // Allow access for development
-        // TODO: Implement proper admin role checking
-        req.user = {
-            id: 'admin-user',
-            userType: 'admin',
-            email: 'admin@capify.com'
-        };
-
+        req.user = user;
         next();
     } catch (error) {
+        console.error('Auth error:', error.message);
         return res.status(401).json({
             success: false,
             message: 'Invalid or expired token'

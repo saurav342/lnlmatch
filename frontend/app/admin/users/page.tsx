@@ -14,62 +14,10 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Search, Filter, Download, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// Mock user data
-const mockUsers = [
-    {
-        id: "1",
-        name: "Sarah Chen",
-        email: "sarah@example.com",
-        userType: "founder",
-        subscriptionPlan: "pro",
-        accountStatus: "active",
-        signupDate: "2024-11-15",
-        lastLogin: "2 hours ago",
-    },
-    {
-        id: "2",
-        name: "Michael Roberts",
-        email: "michael@venture.com",
-        userType: "investor",
-        subscriptionPlan: "enterprise",
-        accountStatus: "active",
-        signupDate: "2024-10-22",
-        lastLogin: "1 day ago",
-    },
-    {
-        id: "3",
-        name: "Alex Kumar",
-        email: "alex@startup.io",
-        userType: "founder",
-        subscriptionPlan: "free",
-        accountStatus: "active",
-        signupDate: "2024-11-28",
-        lastLogin: "5 hours ago",
-    },
-    {
-        id: "4",
-        name: "Jennifer Lee",
-        email: "jennifer@fund.com",
-        userType: "investor",
-        subscriptionPlan: "pro",
-        accountStatus: "active",
-        signupDate: "2024-09-14",
-        lastLogin: "3 hours ago",
-    },
-    {
-        id: "5",
-        name: "David Park",
-        email: "david@company.com",
-        userType: "founder",
-        subscriptionPlan: "free",
-        accountStatus: "suspended",
-        signupDate: "2024-11-01",
-        lastLogin: "2 weeks ago",
-    },
-];
+import { API_BASE_URL } from "@/lib/api";
 
 export default function UsersPage() {
     const router = useRouter();
@@ -77,6 +25,61 @@ export default function UsersPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [userTypeFilter, setUserTypeFilter] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
+
+    const [users, setUsers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [total, setTotal] = useState(0);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            setLoading(true);
+            try {
+                const token = localStorage.getItem('authToken');
+                const headers: HeadersInit = {
+                    'Content-Type': 'application/json'
+                };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const queryParams = new URLSearchParams({
+                    page: page.toString(),
+                    limit: "10",
+                    search: searchQuery,
+                    userType: userTypeFilter === "all" ? "" : userTypeFilter,
+                    accountStatus: statusFilter === "all" ? "" : statusFilter,
+                });
+
+                const response = await fetch(`${API_BASE_URL}/admin/users?${queryParams}`, {
+                    headers
+                });
+
+                if (response.status === 401) {
+                    router.push('/login');
+                    return;
+                }
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        setUsers(result.data);
+                        setTotal(result.pagination.total);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch users:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        // Debounce search
+        const timeoutId = setTimeout(() => {
+            fetchUsers();
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
+    }, [page, searchQuery, userTypeFilter, statusFilter]);
 
     const columns = [
         {
@@ -149,6 +152,7 @@ export default function UsersPage() {
         {
             key: "lastLogin",
             label: "Last Login",
+            render: (item: any) => item.lastLogin ? new Date(item.lastLogin).toLocaleDateString() : 'Never',
         },
         {
             key: "actions",
@@ -160,7 +164,7 @@ export default function UsersPage() {
                         variant="ghost"
                         onClick={(e) => {
                             e.stopPropagation();
-                            router.push(`/admin/users/${item.id}`);
+                            router.push(`/admin/users/${item._id}`);
                         }}
                     >
                         View
@@ -227,17 +231,21 @@ export default function UsersPage() {
                 </div>
 
                 {/* Table */}
-                <EntityTable
-                    columns={columns}
-                    data={mockUsers}
-                    onRowClick={(user) => router.push(`/admin/users/${user.id}`)}
-                    pagination={{
-                        page,
-                        pageSize: 10,
-                        total: mockUsers.length,
-                        onPageChange: setPage,
-                    }}
-                />
+                {loading ? (
+                    <div className="flex justify-center p-8">Loading users...</div>
+                ) : (
+                    <EntityTable
+                        columns={columns}
+                        data={users}
+                        onRowClick={(user) => router.push(`/admin/users/${user._id}`)}
+                        pagination={{
+                            page,
+                            pageSize: 10,
+                            total: total,
+                            onPageChange: setPage,
+                        }}
+                    />
+                )}
             </div>
         </AdminLayout>
     );

@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
     DropdownMenu,
@@ -19,6 +19,7 @@ import { fetchUserProfile } from "@/lib/api";
 
 export function AdminHeader() {
     const pathname = usePathname();
+    const router = useRouter();
     const [userProfile, setUserProfile] = useState<any>(null);
 
     useEffect(() => {
@@ -32,6 +33,12 @@ export function AdminHeader() {
         }
         loadProfile();
     }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        router.push('/login');
+    };
 
     // Generate breadcrumbs from pathname
     const pathSegments = pathname.split("/").filter(Boolean);
@@ -164,7 +171,7 @@ export function AdminHeader() {
                                 Settings
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive focus:text-destructive">
+                            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
                                 <LogOut className="mr-2 h-4 w-4" />
                                 Log out
                             </DropdownMenuItem>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { NAVIGATION } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -59,6 +59,7 @@ const iconMap: Record<string, any> = {
 
 export function MobileSidebar() {
     const pathname = usePathname();
+    const router = useRouter();
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
     const [open, setOpen] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
@@ -75,6 +76,12 @@ export function MobileSidebar() {
         }
         loadProfile();
     }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        router.push('/login');
+    };
 
     const toggleExpand = (name: string) => {
         setExpandedItems((prev) =>
@@ -207,7 +214,7 @@ export function MobileSidebar() {
                                     <span>Settings</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive">
+                                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                                     <LogOut className="mr-2 h-4 w-4" />
                                     <span>Log out</span>
                                 </DropdownMenuItem>

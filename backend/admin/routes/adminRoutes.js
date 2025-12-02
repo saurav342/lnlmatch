@@ -8,6 +8,7 @@ const { uploadSingleExcel, handleUploadError } = require('../middleware/uploadMi
 const adminController = require('../controllers/adminController');
 const investorController = require('../controllers/investorController');
 const userManagementController = require('../controllers/userManagementController');
+const investorUploadController = require('../controllers/investorUploadController');
 
 // Apply admin authentication to all routes
 router.use(verifyAdmin);
@@ -115,6 +116,15 @@ router.get(
 router.get(
     '/investors/template',
     investorController.downloadTemplate
+);
+
+// New route for investor upload
+router.post(
+    '/investors/upload',
+    uploadSingleExcel,
+    handleUploadError,
+    logAdminActivity('upload_investors_file', 'investor'), // Added logAdminActivity for consistency
+    investorUploadController.uploadInvestors
 );
 
 // Excel Upload Route (with special handling)

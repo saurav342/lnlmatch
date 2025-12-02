@@ -14,47 +14,78 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Search, Building2, Download } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-const mockInvestors = [
-    {
-        id: "1",
-        name: "Michael Roberts",
-        company: "Sequoia Capital",
-        location: "Menlo Park, CA",
-        ticketSize: "$1M - $5M",
-        industries: ["Fintech", "Enterprise"],
-        isVerified: true,
-        isActive: true,
-        createdDate: "2024-10-22",
-    },
-    {
-        id: "2",
-        name: "Jennifer Lee",
-        company: "Andreessen Horowitz",
-        location: "San Francisco, CA",
-        ticketSize: "$2M - $10M",
-        industries: ["AI/ML", "Healthcare"],
-        isVerified: true,
-        isActive: true,
-        createdDate: "2024-09-14",
-    },
-    {
-        id: "3",
-        name: "Alex Kumar",
-        company: "Independent Angel",
-        location: "New York, NY",
-        ticketSize: "$100K - $500K",
-        industries: ["E-commerce", "Consumer"],
-        isVerified: false,
-        isActive: true,
-        createdDate: "2024-11-05",
-    },
-];
+import { API_BASE_URL } from "@/lib/api";
+import { ExcelUploadModal } from "@/components/admin/ExcelUploadModal";
 
 export default function InvestorsPage() {
+    const router = useRouter();
     const [page, setPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState("");
+    const [verificationFilter, setVerificationFilter] = useState("all");
+    const [statusFilter, setStatusFilter] = useState("all");
+
+    const [investors, setInvestors] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [total, setTotal] = useState(0);
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const handleRefresh = () => {
+        setRefreshKey(prev => prev + 1);
+    };
+
+    useEffect(() => {
+        const fetchInvestors = async () => {
+            setLoading(true);
+            try {
+                const token = localStorage.getItem('authToken');
+                const headers: HeadersInit = {
+                    'Content-Type': 'application/json'
+                };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const queryParams = new URLSearchParams({
+                    page: page.toString(),
+                    limit: "10",
+                    search: searchQuery,
+                    isVerified: verificationFilter === "all" ? "" : verificationFilter === "verified" ? "true" : "false",
+                    isActive: statusFilter === "all" ? "" : statusFilter === "active" ? "true" : "false",
+                });
+
+                const response = await fetch(`${API_BASE_URL}/admin/investors?${queryParams}`, {
+                    headers
+                });
+
+                if (response.status === 401) {
+                    router.push('/login');
+                    return;
+                }
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        setInvestors(result.data);
+                        setTotal(result.pagination.total);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch investors:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        // Debounce search
+        const timeoutId = setTimeout(() => {
+            fetchInvestors();
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
+    }, [page, searchQuery, verificationFilter, statusFilter, refreshKey]);
 
     const columns = [
         {
@@ -95,9 +126,13 @@ export default function InvestorsPage() {
         {
             key: "ticketSize",
             label: "Ticket Size",
-            render: (item: any) => (
-                <span className="font-mono text-sm">{item.ticketSize}</span>
-            ),
+            render: (item: any) => {
+                const size = item.ticketSize;
+                if (typeof size === 'object' && size !== null) {
+                    return <span className="font-mono text-sm">${size.min?.toLocaleString()} - ${size.max?.toLocaleString()}</span>;
+                }
+                return <span className="font-mono text-sm">{size}</span>;
+            },
         },
         {
             key: "industries",
@@ -133,9 +168,9 @@ export default function InvestorsPage() {
             ),
         },
         {
-            key: "createdDate",
+            key: "createdAt",
             label: "Added",
-            render: (item: any) => new Date(item.createdDate).toLocaleDateString(),
+            render: (item: any) => new Date(item.createdAt).toLocaleDateString(),
         },
         {
             key: "actions",
@@ -178,7 +213,7 @@ export default function InvestorsPage() {
                             className="pl-10"
                         />
                     </div>
-                    <Select>
+                    <Select value={verificationFilter} onValueChange={setVerificationFilter}>
                         <SelectTrigger className="w-full sm:w-[180px]">
                             <SelectValue placeholder="Verification" />
                         </SelectTrigger>
@@ -188,7 +223,7 @@ export default function InvestorsPage() {
                             <SelectItem value="unverified">Unverified</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Select>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
                         <SelectTrigger className="w-full sm:w-[180px]">
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
@@ -198,23 +233,31 @@ export default function InvestorsPage() {
                             <SelectItem value="inactive">Inactive</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button variant="outline" className="gap-2">
-                        <Download className="h-4 w-4" />
-                        Export
-                    </Button>
+
+                    <div className="flex gap-2">
+                        <ExcelUploadModal onSuccess={handleRefresh} />
+                        <Button variant="outline" className="gap-2">
+                            <Download className="h-4 w-4" />
+                            Export
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Table */}
-                <EntityTable
-                    columns={columns}
-                    data={mockInvestors}
-                    pagination={{
-                        page,
-                        pageSize: 10,
-                        total: mockInvestors.length,
-                        onPageChange: setPage,
-                    }}
-                />
+                {loading ? (
+                    <div className="flex justify-center p-8">Loading investors...</div>
+                ) : (
+                    <EntityTable
+                        columns={columns}
+                        data={investors}
+                        pagination={{
+                            page,
+                            pageSize: 10,
+                            total: total,
+                            onPageChange: setPage,
+                        }}
+                    />
+                )}
             </div>
         </AdminLayout>
     );

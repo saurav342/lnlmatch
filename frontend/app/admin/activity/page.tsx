@@ -13,77 +13,81 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Search, Activity } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-const mockActivityLog = [
-    {
-        id: "1",
-        timestamp: "2024-12-02 09:45:23",
-        adminName: "Admin User",
-        action: "User Updated",
-        targetType: "user",
-        targetName: "Sarah Chen",
-        status: "success",
-        ipAddress: "192.168.1.1",
-    },
-    {
-        id: "2",
-        timestamp: "2024-12-02 09:30:15",
-        adminName: "Admin User",
-        action: "Subscription Cancelled",
-        targetType: "subscription",
-        targetName: "Pro Plan - John Doe",
-        status: "success",
-        ipAddress: "192.168.1.1",
-    },
-    {
-        id: "3",
-        timestamp: "2024-12-02 08:15:42",
-        adminName: "Super Admin",
-        action: "Investor Verified",
-        targetType: "investor",
-        targetName: "Michael Roberts",
-        status: "success",
-        ipAddress: "192.168.1.5",
-    },
-    {
-        id: "4",
-        timestamp: "2024-12-01 17:23:11",
-        adminName: "Admin User",
-        action: "Data Export",
-        targetType: "system",
-        targetName: "Users Export (CSV)",
-        status: "success",
-        ipAddress: "192.168.1.1",
-    },
-    {
-        id: "5",
-        timestamp: "2024-12-01 14:56:33",
-        adminName: "Super Admin",
-        action: "User Suspended",
-        targetType: "user",
-        targetName: "David Park",
-        status: "failed",
-        ipAddress: "192.168.1.5",
-    },
-];
+import { API_BASE_URL } from "@/lib/api";
 
 export default function ActivityLogPage() {
+    const router = useRouter();
     const [page, setPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState("");
+    const [actionFilter, setActionFilter] = useState("all");
+    const [targetTypeFilter, setTargetTypeFilter] = useState("all");
+
+    const [activityLog, setActivityLog] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [total, setTotal] = useState(0);
+
+    useEffect(() => {
+        const fetchActivityLog = async () => {
+            setLoading(true);
+            try {
+                const token = localStorage.getItem('authToken');
+                const headers: HeadersInit = {
+                    'Content-Type': 'application/json'
+                };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const queryParams = new URLSearchParams({
+                    page: page.toString(),
+                    limit: "10",
+                    action: actionFilter === "all" ? "" : actionFilter,
+                    targetType: targetTypeFilter === "all" ? "" : targetTypeFilter,
+                });
+
+                const response = await fetch(`${API_BASE_URL}/admin/dashboard/activity-log?${queryParams}`, {
+                    headers
+                });
+
+                if (response.status === 401) {
+                    router.push('/login');
+                    return;
+                }
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        setActivityLog(result.data);
+                        setTotal(result.pagination.total);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch activity log:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchActivityLog();
+    }, [page, actionFilter, targetTypeFilter]);
 
     const columns = [
         {
             key: "timestamp",
             label: "Timestamp",
             render: (item: any) => (
-                <div className="font-mono text-sm text-muted-foreground">{item.timestamp}</div>
+                <div className="font-mono text-sm text-muted-foreground">
+                    {new Date(item.timestamp).toLocaleString()}
+                </div>
             ),
         },
         {
             key: "adminName",
             label: "Admin",
-            render: (item: any) => <div className="font-medium">{item.adminName}</div>,
+            render: (item: any) => <div className="font-medium">{item.adminId?.name || 'Unknown'}</div>,
         },
         {
             key: "action",
@@ -91,7 +95,7 @@ export default function ActivityLogPage() {
             render: (item: any) => (
                 <div className="flex items-center gap-2">
                     <Activity className="h-4 w-4 text-[var(--admin-accent)]" />
-                    <span className="font-medium">{item.action}</span>
+                    <span className="font-medium capitalize">{item.action.replace(/_/g, ' ')}</span>
                 </div>
             ),
         },
@@ -105,9 +109,9 @@ export default function ActivityLogPage() {
             ),
         },
         {
-            key: "targetName",
-            label: "Target",
-            render: (item: any) => <span className="text-sm">{item.targetName}</span>,
+            key: "targetId",
+            label: "Target ID",
+            render: (item: any) => <span className="text-sm font-mono">{item.targetId || 'N/A'}</span>,
         },
         {
             key: "status",
@@ -128,7 +132,7 @@ export default function ActivityLogPage() {
         {
             key: "ipAddress",
             label: "IP Address",
-            render: (item: any) => <span className="font-mono text-xs">{item.ipAddress}</span>,
+            render: (item: any) => <span className="font-mono text-xs">{item.ipAddress || 'N/A'}</span>,
         },
     ];
 
@@ -149,21 +153,22 @@ export default function ActivityLogPage() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="pl-10"
+                            disabled // Search not fully supported in backend yet
                         />
                     </div>
-                    <Select>
+                    <Select value={actionFilter} onValueChange={setActionFilter}>
                         <SelectTrigger className="w-full sm:w-[180px]">
                             <SelectValue placeholder="Action Type" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Actions</SelectItem>
-                            <SelectItem value="create">Create</SelectItem>
-                            <SelectItem value="update">Update</SelectItem>
-                            <SelectItem value="delete">Delete</SelectItem>
-                            <SelectItem value="export">Export</SelectItem>
+                            <SelectItem value="create_investor">Create Investor</SelectItem>
+                            <SelectItem value="update_investor">Update Investor</SelectItem>
+                            <SelectItem value="delete_investor">Delete Investor</SelectItem>
+                            <SelectItem value="view_users">View Users</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Select>
+                    <Select value={targetTypeFilter} onValueChange={setTargetTypeFilter}>
                         <SelectTrigger className="w-full sm:w-[180px]">
                             <SelectValue placeholder="Target Type" />
                         </SelectTrigger>
@@ -175,30 +180,23 @@ export default function ActivityLogPage() {
                             <SelectItem value="system">System</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Select>
-                        <SelectTrigger className="w-full sm:w-[180px]">
-                            <SelectValue placeholder="Time Range" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="today">Today</SelectItem>
-                            <SelectItem value="week">This Week</SelectItem>
-                            <SelectItem value="month">This Month</SelectItem>
-                            <SelectItem value="all">All Time</SelectItem>
-                        </SelectContent>
-                    </Select>
                 </div>
 
                 {/* Table */}
-                <EntityTable
-                    columns={columns}
-                    data={mockActivityLog}
-                    pagination={{
-                        page,
-                        pageSize: 10,
-                        total: mockActivityLog.length,
-                        onPageChange: setPage,
-                    }}
-                />
+                {loading ? (
+                    <div className="flex justify-center p-8">Loading activity log...</div>
+                ) : (
+                    <EntityTable
+                        columns={columns}
+                        data={activityLog}
+                        pagination={{
+                            page,
+                            pageSize: 10,
+                            total: total,
+                            onPageChange: setPage,
+                        }}
+                    />
+                )}
             </div>
         </AdminLayout>
     );

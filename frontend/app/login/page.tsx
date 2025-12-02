@@ -59,7 +59,11 @@ export default function LoginPage() {
                 localStorage.setItem('authToken', responseData.token);
                 localStorage.setItem('user', JSON.stringify(responseData.user));
 
-                router.push("/dashboard");
+                if (responseData.user.userType === 'admin') {
+                    router.push("/admin");
+                } else {
+                    router.push("/dashboard");
+                }
             } else {
                 setServerError(responseData.message || "Invalid credentials");
             }
