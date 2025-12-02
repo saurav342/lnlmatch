@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 5001;
 const connectDB = require('./config/db');
 const apiRoutes = require('./routes/apiRoutes');
 const adminRoutes = require('./admin/routes/adminRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 connectDB();
 
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 app.use('/api', apiRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payment', paymentRoutes);
 
 
 app.get('/', (req, res) => {

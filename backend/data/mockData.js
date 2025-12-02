@@ -19,6 +19,7 @@ const investors = [
         email: "sauravks2010@gmail.com",
         avatar: "https://avatar.vercel.sh/sarah",
         isWishlisted: false,
+        type: "Institutional",
     },
     {
         id: "1a",
@@ -30,6 +31,7 @@ const investors = [
         email: "sarah.chen@accel.com",
         avatar: "https://avatar.vercel.sh/sarah",
         isWishlisted: false,
+        type: "Institutional",
     },
     {
         id: "2",
@@ -41,6 +43,7 @@ const investors = [
         email: "mroberts@sequoia.com",
         avatar: "https://avatar.vercel.sh/michael",
         isWishlisted: true,
+        type: "Institutional",
     },
     {
         id: "3",
@@ -52,6 +55,7 @@ const investors = [
         email: "alex.kumar@angel.io",
         avatar: "https://avatar.vercel.sh/alex",
         isWishlisted: false,
+        type: "Angel",
     },
     {
         id: "4",
@@ -63,6 +67,7 @@ const investors = [
         email: "jennifer.lee@a16z.com",
         avatar: "https://avatar.vercel.sh/jennifer",
         isWishlisted: false,
+        type: "Institutional",
     },
 ];
 

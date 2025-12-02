@@ -40,7 +40,9 @@ export default function AngelsPage() {
         async function loadInvestors() {
             try {
                 const data = await fetchInvestors();
-                setInvestors(data);
+                // Filter for Angel investors
+                const angelInvestors = data.filter((inv: any) => inv.type === 'Angel');
+                setInvestors(angelInvestors);
             } catch (error) {
                 console.error("Failed to load investors", error);
             } finally {

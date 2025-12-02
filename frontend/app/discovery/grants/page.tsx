@@ -12,16 +12,20 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, ExternalLink, Calendar } from "lucide-react";
+import { Search } from "lucide-react";
 
 import { useEffect, useState } from "react";
 import { fetchGrants } from "@/lib/api";
+import { OpportunityCard } from "@/components/discovery/OpportunityCard";
+import { OpportunityDetailsModal } from "@/components/discovery/OpportunityDetailsModal";
 
 // ... imports ...
 
 export default function GrantsPage() {
     const [grants, setGrants] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedGrant, setSelectedGrant] = useState<any>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         async function loadGrants() {
@@ -37,21 +41,17 @@ export default function GrantsPage() {
         loadGrants();
     }, []);
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(amount);
+    const handleViewDetails = (grant: any) => {
+        setSelectedGrant(grant);
+        setIsModalOpen(true);
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-        });
+    const handleToggleWishlist = (id: string) => {
+        console.log("Toggle wishlist for", id);
+        // Optimistic update
+        setGrants(prev => prev.map(g =>
+            g.id === id ? { ...g, isWishlisted: !g.isWishlisted } : g
+        ));
     };
 
     if (loading) {
@@ -150,55 +150,27 @@ export default function GrantsPage() {
                             <Badge variant="secondary">{grants.length} Results</Badge>
                         </div>
 
-                        <div className="grid gap-4">
+                        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                             {grants.map((grant) => (
-                                <Card key={grant.id} className="p-6">
-                                    <div className="space-y-4">
-                                        <div className="space-y-2">
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div className="space-y-1">
-                                                    <h3 className="text-lg font-semibold">{grant.title}</h3>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {grant.organization}
-                                                    </p>
-                                                </div>
-                                                <Badge variant={grant.isEquityFree ? "default" : "secondary"}>
-                                                    {grant.isEquityFree ? "Equity-free" : "Equity"}
-                                                </Badge>
-                                            </div>
-
-                                            <p className="text-sm">{grant.description}</p>
-                                        </div>
-
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <Badge variant="outline" className="gap-1">
-                                                <Calendar className="h-3 w-3" />
-                                                Deadline: {formatDate(grant.deadline)}
-                                            </Badge>
-                                            <Badge variant="outline">
-                                                {formatCurrency(grant.amount.min)} - {formatCurrency(grant.amount.max)}
-                                            </Badge>
-                                            {grant.tags.map((tag: string) => (
-                                                <Badge key={tag} variant="secondary" className="text-xs">
-                                                    {tag}
-                                                </Badge>
-                                            ))}
-                                        </div>
-
-                                        <div className="flex gap-2">
-                                            <Button className="gap-2">
-                                                Apply Now
-                                                <ExternalLink className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="outline">Save for Later</Button>
-                                        </div>
-                                    </div>
-                                </Card>
+                                <OpportunityCard
+                                    key={grant.id}
+                                    data={grant}
+                                    type="grant"
+                                    onViewDetails={handleViewDetails}
+                                    onToggleWishlist={handleToggleWishlist}
+                                />
                             ))}
                         </div>
                     </div>
                 </div>
             </div>
+
+            <OpportunityDetailsModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                data={selectedGrant}
+                type="grant"
+            />
         </DashboardLayout>
     );
 }
