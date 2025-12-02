@@ -101,9 +101,10 @@ export function Sidebar() {
                                     <button
                                         onClick={() => toggleExpand(item.name)}
                                         className={cn(
-                                            "flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                                            active && "bg-accent text-accent-foreground"
+                                            "flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground",
+                                            active && "text-white shadow-md shadow-orange-500/20"
                                         )}
+                                        style={active ? { background: "var(--primary-gradient)" } : {}}
                                     >
                                         <div className="flex items-center gap-3">
                                             <Icon className="h-4 w-4" />
@@ -119,14 +120,14 @@ export function Sidebar() {
                                         <div className="ml-4 mt-1 space-y-1 border-l border-border pl-4">
                                             {item.children.map((child) => {
                                                 const ChildIcon = iconMap[child.icon];
+                                                const childActive = isActive(child.href);
                                                 return (
                                                     <Link
                                                         key={child.name}
                                                         href={child.href}
                                                         className={cn(
-                                                            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                                                            isActive(child.href) &&
-                                                            "bg-accent text-accent-foreground"
+                                                            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground",
+                                                            childActive && "text-orange-600 bg-orange-50 dark:bg-orange-950/20 dark:text-orange-400"
                                                         )}
                                                     >
                                                         <ChildIcon className="h-4 w-4" />
@@ -141,9 +142,10 @@ export function Sidebar() {
                                 <Link
                                     href={item.href}
                                     className={cn(
-                                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                                        active && "bg-accent text-accent-foreground"
+                                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground",
+                                        active && "text-white shadow-md shadow-orange-500/20"
                                     )}
+                                    style={active ? { background: "var(--primary-gradient)" } : {}}
                                 >
                                     <Icon className="h-4 w-4" />
                                     <span>{item.name}</span>

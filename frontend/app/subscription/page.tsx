@@ -37,7 +37,7 @@ export default function SubscriptionPage() {
                 </Card>
 
                 {/* Pricing Grid */}
-                <div className="grid gap-6 md:grid-cols-3">
+                <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
                     {SUBSCRIPTION_PLANS.map((plan) => (
                         <Card
                             key={plan.id}
@@ -52,7 +52,7 @@ export default function SubscriptionPage() {
                                     <h3 className="text-xl font-bold">{plan.name}</h3>
                                     <div className="mt-2">
                                         <span className="text-4xl font-bold">
-                                            ${plan.price}
+                                            ₹{plan.price}
                                         </span>
                                         <span className="text-muted-foreground">/month</span>
                                     </div>

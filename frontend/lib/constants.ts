@@ -8,15 +8,15 @@ export const NAVIGATION: NavigationItem[] = [
         icon: "LayoutDashboard",
     },
     {
-        name: "Startup Profile",
-        href: "/startup-profile",
+        name: "Fundraising",
+        href: "/fundraising",
         icon: "Building2",
-    },
-    {
-        name: "Discovery",
-        href: "/discovery",
-        icon: "Compass",
         children: [
+            {
+                name: "AI Matchmaking",
+                href: "/matchmaking",
+                icon: "Sparkles",
+            },
             {
                 name: "Angels",
                 href: "/discovery/angels",
@@ -28,11 +28,6 @@ export const NAVIGATION: NavigationItem[] = [
                 icon: "Award",
             },
         ],
-    },
-    {
-        name: "AI Matchmaking",
-        href: "/matchmaking",
-        icon: "Sparkles",
     },
     {
         name: "CRM",
@@ -52,14 +47,26 @@ export const NAVIGATION: NavigationItem[] = [
         ],
     },
     {
-        name: "Email Settings",
-        href: "/email-settings",
-        icon: "Settings", // Using Settings icon as placeholder, mapped in sidebar
-    },
-    {
-        name: "Subscription",
-        href: "/subscription",
-        icon: "CreditCard",
+        name: "Organization",
+        href: "/organization",
+        icon: "Settings",
+        children: [
+            {
+                name: "Startup Profile",
+                href: "/startup-profile",
+                icon: "Building2",
+            },
+            {
+                name: "Email Settings",
+                href: "/email-settings",
+                icon: "Settings",
+            },
+            {
+                name: "Subscription",
+                href: "/subscription",
+                icon: "CreditCard",
+            },
+        ],
     },
 ];
 
@@ -176,9 +183,9 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
         },
     },
     {
-        id: "pro",
-        name: "Pro",
-        price: 49,
+        id: "premium",
+        name: "Premium",
+        price: 9999,
         billingInterval: "monthly",
         isPopular: true,
         features: [
@@ -188,20 +195,6 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
             "Unlimited emails",
             "Email tracking & analytics",
             "Priority support",
-        ],
-        limits: {
-            matches: -1, // unlimited
-            emails: -1,
-            aiCredits: -1,
-        },
-    },
-    {
-        id: "enterprise",
-        name: "Enterprise",
-        price: 199,
-        billingInterval: "monthly",
-        features: [
-            "Everything in Pro",
             "Dedicated account manager",
             "Custom integrations",
             "Team collaboration",
@@ -209,7 +202,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
             "White-label options",
         ],
         limits: {
-            matches: -1,
+            matches: -1, // unlimited
             emails: -1,
             aiCredits: -1,
         },

@@ -131,7 +131,7 @@ export type EmailStatus = "draft" | "sent" | "opened" | "clicked" | "replied" | 
 
 export interface SubscriptionPlan {
   id: string;
-  name: "Free" | "Pro" | "Enterprise";
+  name: "Free" | "Premium";
   price: number;
   billingInterval: "monthly" | "annual";
   features: string[];

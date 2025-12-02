@@ -22,6 +22,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import Image from "next/image";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Logo } from "@/components/ui/logo";
 
 // Animation variants
 const fadeInUp = {
@@ -60,8 +61,7 @@ export default function LandingPage() {
       >
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Capify" width={32} height={32} className="h-8 w-8" />
-            {/* <span className="text-xl font-bold tracking-tight">Capify</span> */}
+            <Logo />
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
             <Link href="#features" className="transition-colors hover:text-primary">
@@ -590,8 +590,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
             <div className="col-span-2 lg:col-span-2">
               <div className="flex items-center gap-2 mb-4">
-                <Image src="/logo.png" alt="Capify" width={32} height={32} className="h-8 w-8" />
-                {/* <span className="text-lg font-bold">Capify</span> */}
+                <Logo />
               </div>
               <p className="text-sm text-muted-foreground max-w-xs mb-6">
                 The intelligent fundraising platform for modern startups. Connect, track, and close deals faster.

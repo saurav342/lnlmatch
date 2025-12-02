@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { API_BASE_URL } from "@/lib/api";
+import AuthSidePanel from "@/components/AuthSidePanel";
 
 const loginSchema = z.object({
     email: z.string().email({ message: "Please enter a valid email address" }),
@@ -70,56 +71,40 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden">
-            {/* Background Elements */}
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]" />
+        <div className="min-h-screen w-full flex bg-background">
+            {/* Left Side Panel */}
+            <div className="hidden lg:block w-1/2">
+                <AuthSidePanel />
             </div>
 
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-md z-10 px-4"
-            >
-                <div className="mb-8 text-center">
-                    <Link href="/" className="inline-block mb-4">
-                        <div className="flex items-center justify-center gap-2">
-                            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                                <span className="text-primary-foreground font-bold text-xl">C</span>
-                            </div>
-                            <span className="text-2xl font-bold text-foreground">
-                                Capify
-                            </span>
-                        </div>
-                    </Link>
-                    <h1 className="text-3xl font-bold text-foreground mb-2">Welcome back</h1>
-                    <p className="text-muted-foreground">Enter your credentials to access your account</p>
-                </div>
+            {/* Right Side - Login Form */}
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-12 relative">
+                <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="w-full max-w-md space-y-8"
+                >
+                    <div className="space-y-2">
+                        <h1 className="text-3xl font-bold tracking-tight text-foreground">Welcome Back</h1>
+                        <p className="text-muted-foreground">Enter your credentials to access your account</p>
+                    </div>
 
-                <Card className="border-border bg-card/50 backdrop-blur-xl shadow-2xl">
-                    <CardHeader>
-                        <CardTitle className="text-xl text-foreground">Sign In</CardTitle>
-                        <CardDescription className="text-muted-foreground">
-                            Continue your fundraising journey
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                            {serverError && (
-                                <Alert variant="destructive">
-                                    <AlertDescription>{serverError}</AlertDescription>
-                                </Alert>
-                            )}
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                        {serverError && (
+                            <Alert variant="destructive">
+                                <AlertDescription>{serverError}</AlertDescription>
+                            </Alert>
+                        )}
 
+                        <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="email" className="text-foreground">Email</Label>
+                                <Label htmlFor="email">Email address</Label>
                                 <Input
                                     id="email"
                                     type="email"
                                     placeholder="name@example.com"
-                                    className={`bg-background border-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 ${errors.email ? "border-destructive focus:border-destructive" : ""}`}
+                                    className={`h-11 bg-background border-input ${errors.email ? "border-destructive focus:border-destructive" : ""}`}
                                     {...register("email")}
                                 />
                                 {errors.email && (
@@ -128,21 +113,13 @@ export default function LoginPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <Label htmlFor="password" className="text-foreground">Password</Label>
-                                    <Link
-                                        href="/forgot-password"
-                                        className="text-sm text-primary hover:text-primary/80 transition-colors"
-                                    >
-                                        Forgot password?
-                                    </Link>
-                                </div>
+                                <Label htmlFor="password">Password</Label>
                                 <div className="relative">
                                     <Input
                                         id="password"
                                         type={showPassword ? "text" : "password"}
-                                        placeholder="••••••••"
-                                        className={`bg-background border-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 pr-10 ${errors.password ? "border-destructive focus:border-destructive" : ""}`}
+                                        placeholder="Enter your password"
+                                        className={`h-11 bg-background border-input pr-10 ${errors.password ? "border-destructive focus:border-destructive" : ""}`}
                                         {...register("password")}
                                     />
                                     <button
@@ -150,43 +127,71 @@ export default function LoginPage() {
                                         onClick={() => setShowPassword(!showPassword)}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                     >
-                                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
                                 </div>
                                 {errors.password && (
                                     <p className="text-sm text-destructive font-medium">{errors.password.message}</p>
                                 )}
                             </div>
+                        </div>
 
-                            <Button
-                                type="submit"
-                                className="w-full"
-                                disabled={isLoading}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                                <input
+                                    type="checkbox"
+                                    id="remember"
+                                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                />
+                                <label htmlFor="remember" className="text-sm text-muted-foreground">Remember me</label>
+                            </div>
+                            <Link
+                                href="/forgot-password"
+                                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
                             >
-                                {isLoading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Signing in...
-                                    </>
-                                ) : (
-                                    <>
-                                        Sign In
-                                        <ArrowRight className="ml-2 h-4 w-4" />
-                                    </>
-                                )}
-                            </Button>
-                        </form>
-                    </CardContent>
-                    <CardFooter className="flex justify-center border-t border-border pt-6">
-                        <p className="text-sm text-muted-foreground">
-                            Don't have an account?{" "}
-                            <Link href="/signup" className="text-primary hover:text-primary/80 font-medium transition-colors">
-                                Sign up
+                                Forgot password?
                             </Link>
-                        </p>
-                    </CardFooter>
-                </Card>
-            </motion.div>
+                        </div>
+
+                        <Button
+                            type="submit"
+                            className="w-full h-11"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Signing in...
+                                </>
+                            ) : (
+                                <>
+                                    Sign in
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </>
+                            )}
+                        </Button>
+                    </form>
+
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-background px-2 text-muted-foreground">
+                                Don't have an account?
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="text-center">
+                        <Link href="/signup">
+                            <Button variant="outline" className="w-full h-11">
+                                Create an account
+                            </Button>
+                        </Link>
+                    </div>
+                </motion.div>
+            </div>
         </div>
     );
 }
