@@ -3,6 +3,140 @@ const User = require('../models/User');
 const Subscription = require('../models/Subscription');
 const Investor = require('../models/Investor');
 const AdminActivity = require('../models/AdminActivity');
+const PotentialInvestor = require('../models/PotentialInvestor');
+
+/**
+ * Get potential investors with pagination
+ */
+const getPotentialInvestors = async (req, res) => {
+    try {
+        const { page = 1, limit = 50, search = '' } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        const query = { status: 'pending' };
+        if (search) {
+            query.$or = [
+                { companyName: { $regex: search, $options: 'i' } },
+                { firstName: { $regex: search, $options: 'i' } },
+                { lastName: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const [investors, total] = await Promise.all([
+            PotentialInvestor.find(query)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(parseInt(limit)),
+            PotentialInvestor.countDocuments(query)
+        ]);
+
+        res.json({
+            success: true,
+            data: investors,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / parseInt(limit))
+            }
+        });
+    } catch (error) {
+        console.error('Get potential investors error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch potential investors' });
+    }
+};
+
+/**
+ * Get potential investor details
+ */
+const getPotentialInvestorDetails = async (req, res) => {
+    try {
+        const investor = await PotentialInvestor.findById(req.params.id);
+        if (!investor) {
+            return res.status(404).json({ success: false, message: 'Potential investor not found' });
+        }
+        res.json({ success: true, data: investor });
+    } catch (error) {
+        console.error('Get potential investor details error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch details' });
+    }
+};
+
+/**
+ * Update potential investor
+ */
+const updatePotentialInvestor = async (req, res) => {
+    try {
+        const investor = await PotentialInvestor.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+        if (!investor) {
+            return res.status(404).json({ success: false, message: 'Potential investor not found' });
+        }
+        res.json({ success: true, data: investor });
+    } catch (error) {
+        console.error('Update potential investor error:', error);
+        res.status(500).json({ success: false, message: 'Failed to update potential investor' });
+    }
+};
+
+/**
+ * Approve potential investor
+ */
+const approvePotentialInvestor = async (req, res) => {
+    try {
+        const potentialInvestor = await PotentialInvestor.findById(req.params.id);
+        if (!potentialInvestor) {
+            return res.status(404).json({ success: false, message: 'Potential investor not found' });
+        }
+
+        // Map to Investor model
+        const newInvestor = new Investor({
+            name: `${potentialInvestor.firstName} ${potentialInvestor.lastName}`.trim(),
+            email: potentialInvestor.email,
+            company: potentialInvestor.companyName,
+            websiteUrl: potentialInvestor.website,
+            linkedinUrl: potentialInvestor.personLinkedinUrl,
+            notes: potentialInvestor.notes,
+            type: 'Institutional', // Defaulting to Institutional based on CSV data usually being VCs
+            source: 'excel-import',
+            isActive: true,
+            isVerified: true,
+            // Map other fields as best as possible
+            industries: potentialInvestor.industry ? [potentialInvestor.industry] : [],
+            investmentStage: potentialInvestor.stageOfInvestment ? potentialInvestor.stageOfInvestment.split(',').map(s => s.trim()) : []
+        });
+
+        await newInvestor.save();
+
+        // Delete from PotentialInvestor
+        await PotentialInvestor.findByIdAndDelete(req.params.id);
+
+        res.json({ success: true, message: 'Investor approved and moved to main list', data: newInvestor });
+    } catch (error) {
+        console.error('Approve potential investor error:', error);
+        res.status(500).json({ success: false, message: 'Failed to approve investor' });
+    }
+};
+
+/**
+ * Reject potential investor
+ */
+const rejectPotentialInvestor = async (req, res) => {
+    try {
+        const investor = await PotentialInvestor.findByIdAndDelete(req.params.id);
+        if (!investor) {
+            return res.status(404).json({ success: false, message: 'Potential investor not found' });
+        }
+        res.json({ success: true, message: 'Potential investor rejected and removed' });
+    } catch (error) {
+        console.error('Reject potential investor error:', error);
+        res.status(500).json({ success: false, message: 'Failed to reject investor' });
+    }
+};
 
 /**
  * Get dashboard statistics
@@ -224,5 +358,10 @@ const getSystemHealth = async (req, res) => {
 module.exports = {
     getDashboardStats,
     getActivityLog,
-    getSystemHealth
+    getSystemHealth,
+    getPotentialInvestors,
+    getPotentialInvestorDetails,
+    updatePotentialInvestor,
+    approvePotentialInvestor,
+    rejectPotentialInvestor
 };

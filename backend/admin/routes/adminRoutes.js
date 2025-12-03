@@ -136,4 +136,37 @@ router.post(
     investorController.uploadInvestorsExcel
 );
 
+// ============================================
+// Potential Investor Processing Routes
+// ============================================
+router.get(
+    '/potential-investors',
+    logAdminActivity('view_potential_investors', 'potential_investor'),
+    adminController.getPotentialInvestors
+);
+
+router.get(
+    '/potential-investors/:id',
+    logAdminActivity('view_potential_investor_details', 'potential_investor'),
+    adminController.getPotentialInvestorDetails
+);
+
+router.put(
+    '/potential-investors/:id',
+    logAdminActivity('update_potential_investor', 'potential_investor'),
+    adminController.updatePotentialInvestor
+);
+
+router.post(
+    '/potential-investors/:id/approve',
+    logAdminActivity('approve_potential_investor', 'potential_investor'),
+    adminController.approvePotentialInvestor
+);
+
+router.post(
+    '/potential-investors/:id/reject',
+    logAdminActivity('reject_potential_investor', 'potential_investor'),
+    adminController.rejectPotentialInvestor
+);
+
 module.exports = router;

@@ -21,6 +21,7 @@ const navigation = [
     { name: "Overview", href: "/admin", icon: LayoutDashboard },
     { name: "Users", href: "/admin/users", icon: Users },
     { name: "Investors", href: "/admin/investors", icon: Building2 },
+    { name: "Investor Processing", href: "/admin/investor-processing", icon: Users },
     { name: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard },
     { name: "Activity Log", href: "/admin/activity", icon: Activity },
     { name: "Settings", href: "/admin/settings", icon: Settings },
