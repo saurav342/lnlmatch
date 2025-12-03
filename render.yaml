@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: lnlmatch-backend
+    runtime: node
+    region: singapore  # Choose region closest to your users
+    plan: free  # Free tier - upgrade to paid if needed
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000  # Render's default port
+      - key: MONGODB_URI
+        sync: false  # You'll need to add this manually in Render dashboard
+      - key: JWT_SECRET
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false
+    healthCheckPath: /api/health
+    autoDeploy: true
+    branch: main
