@@ -86,7 +86,7 @@ export default function SubscriptionsPage() {
 
         // Debounce search
         const timeoutId = setTimeout(() => {
-            fetchData();
+            fetchSubscriptions();
         }, 300);
 
         return () => clearTimeout(timeoutId);
