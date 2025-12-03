@@ -169,4 +169,10 @@ router.post(
     adminController.rejectPotentialInvestor
 );
 
+router.delete(
+    '/potential-investors/:id',
+    logAdminActivity('delete_potential_investor', 'potential_investor'),
+    adminController.deletePotentialInvestor
+);
+
 module.exports = router;

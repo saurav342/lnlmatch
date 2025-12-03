@@ -344,3 +344,88 @@ export async function exportInvestors() {
     a.remove();
     window.URL.revokeObjectURL(url);
 }
+
+// ============================================
+// Potential Investor Processing APIs
+// ============================================
+
+export async function fetchPotentialInvestors(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    batch?: string;
+}) {
+    const queryParams = new URLSearchParams(
+        Object.entries(params).reduce((acc, [key, value]) => {
+            if (value !== undefined && value !== '') {
+                acc[key] = String(value);
+            }
+            return acc;
+        }, {} as Record<string, string>)
+    ).toString();
+
+    const response = await fetch(`${API_BASE_URL}/admin/potential-investors?${queryParams}`, {
+        headers: getAuthHeaders()
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch potential investors');
+    }
+
+    return response.json();
+}
+
+export async function updatePotentialInvestor(id: string, data: any) {
+    const response = await fetch(`${API_BASE_URL}/admin/potential-investors/${id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to update potential investor');
+    }
+
+    return response.json();
+}
+
+export async function approvePotentialInvestor(id: string) {
+    const response = await fetch(`${API_BASE_URL}/admin/potential-investors/${id}/approve`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to approve potential investor');
+    }
+
+    return response.json();
+}
+
+export async function rejectPotentialInvestor(id: string) {
+    const response = await fetch(`${API_BASE_URL}/admin/potential-investors/${id}/reject`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to reject potential investor');
+    }
+
+    return response.json();
+}
+
+export async function deletePotentialInvestor(id: string) {
+    const response = await fetch(`${API_BASE_URL}/admin/potential-investors/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to delete potential investor');
+    }
+
+    return response.json();
+}
+

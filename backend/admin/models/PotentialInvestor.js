@@ -13,9 +13,14 @@ const potentialInvestorSchema = new mongoose.Schema({
     personLinkedinUrl: { type: String, trim: true },
     authentic: { type: String, trim: true },
     notes: { type: String, trim: true },
+    batch: {
+        type: String,
+        enum: ['P1', 'B1'],
+        default: 'P1'
+    },
     status: {
         type: String,
-        enum: ['pending', 'approved', 'rejected'],
+        enum: ['pending', 'reviewed', 'approved', 'rejected'],
         default: 'pending'
     },
     createdAt: { type: Date, default: Date.now }

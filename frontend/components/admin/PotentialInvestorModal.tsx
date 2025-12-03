@@ -8,7 +8,10 @@ interface PotentialInvestorModalProps {
     onClose: () => void;
     onApprove: (id: string) => void;
     onReject: (id: string) => void;
+    onDelete: (id: string) => void;
     onUpdate: (id: string, data: Partial<PotentialInvestor>) => void;
+    isLoading?: boolean;
+    isRejectedTab?: boolean;
 }
 
 const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
@@ -17,7 +20,10 @@ const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
     onClose,
     onApprove,
     onReject,
-    onUpdate
+    onDelete,
+    onUpdate,
+    isLoading = false,
+    isRejectedTab = false
 }) => {
     const [formData, setFormData] = useState<Partial<PotentialInvestor>>({});
     const [isEditing, setIsEditing] = useState(false);
@@ -43,7 +49,16 @@ const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative">
+                {isLoading && (
+                    <div className="absolute inset-0 z-50 bg-white/80 dark:bg-gray-800/80 flex items-center justify-center">
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                            <p className="text-gray-600 dark:text-gray-300 font-medium">Processing...</p>
+                        </div>
+                    </div>
+                )}
+
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                     <div>
@@ -108,49 +123,79 @@ const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
 
                 {/* Footer */}
                 <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex justify-between items-center">
-                    <div className="flex gap-3">
-                        {isEditing ? (
-                            <>
-                                <button
-                                    onClick={handleSave}
-                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                >
-                                    <Save className="w-4 h-4" />
-                                    Save Changes
-                                </button>
-                                <button
-                                    onClick={() => setIsEditing(false)}
-                                    className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
-                                >
-                                    Cancel
-                                </button>
-                            </>
-                        ) : (
+                    {investor.status === 'approved' ? (
+                        <div className="w-full flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-green-600 font-medium">
+                                <div className="p-1 bg-green-100 rounded-full">
+                                    <Check className="w-4 h-4" />
+                                </div>
+                                Verified & Added to Investors
+                            </div>
                             <button
-                                onClick={() => setIsEditing(true)}
-                                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
+                                onClick={onClose}
+                                className="px-4 py-2 bg-gray-900 text-white dark:bg-white dark:text-gray-900 rounded-lg hover:opacity-90 transition-opacity"
                             >
-                                Edit Details
+                                Close
                             </button>
-                        )}
-                    </div>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="flex gap-3">
+                                {isEditing ? (
+                                    <>
+                                        <button
+                                            onClick={handleSave}
+                                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                        >
+                                            <Save className="w-4 h-4" />
+                                            Save Changes
+                                        </button>
+                                        <button
+                                            onClick={() => setIsEditing(false)}
+                                            className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button
+                                        onClick={() => setIsEditing(true)}
+                                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
+                                    >
+                                        Edit Details
+                                    </button>
+                                )}
+                            </div>
 
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => onReject(investor._id)}
-                            className="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                            Reject
-                        </button>
-                        <button
-                            onClick={() => onApprove(investor._id)}
-                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-lg shadow-green-600/20"
-                        >
-                            <Check className="w-4 h-4" />
-                            Approve & Add
-                        </button>
-                    </div>
+                            <div className="flex gap-3">
+                                {!isRejectedTab && (
+                                    <button
+                                        onClick={() => onReject(investor._id)}
+                                        className="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Reject
+                                    </button>
+                                )}
+                                {isRejectedTab && (
+                                    <button
+                                        onClick={() => onDelete(investor._id)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Delete Permanently
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => onApprove(investor._id)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-lg shadow-green-600/20"
+                                >
+                                    <Check className="w-4 h-4" />
+                                    Approve & Add
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

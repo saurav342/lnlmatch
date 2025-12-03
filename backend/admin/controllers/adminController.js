@@ -10,10 +10,10 @@ const PotentialInvestor = require('../models/PotentialInvestor');
  */
 const getPotentialInvestors = async (req, res) => {
     try {
-        const { page = 1, limit = 50, search = '' } = req.query;
+        const { page = 1, limit = 50, search = '', status = 'pending', batch = 'P1' } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
-        const query = { status: 'pending' };
+        const query = { status, batch };
         if (search) {
             query.$or = [
                 { companyName: { $regex: search, $options: 'i' } },
@@ -127,14 +127,34 @@ const approvePotentialInvestor = async (req, res) => {
  */
 const rejectPotentialInvestor = async (req, res) => {
     try {
+        const investor = await PotentialInvestor.findByIdAndUpdate(
+            req.params.id,
+            { status: 'rejected' },
+            { new: true }
+        );
+        if (!investor) {
+            return res.status(404).json({ success: false, message: 'Potential investor not found' });
+        }
+        res.json({ success: true, message: 'Potential investor moved to rejected list', data: investor });
+    } catch (error) {
+        console.error('Reject potential investor error:', error);
+        res.status(500).json({ success: false, message: 'Failed to reject investor' });
+    }
+};
+
+/**
+ * Delete potential investor permanently
+ */
+const deletePotentialInvestor = async (req, res) => {
+    try {
         const investor = await PotentialInvestor.findByIdAndDelete(req.params.id);
         if (!investor) {
             return res.status(404).json({ success: false, message: 'Potential investor not found' });
         }
-        res.json({ success: true, message: 'Potential investor rejected and removed' });
+        res.json({ success: true, message: 'Potential investor deleted permanently' });
     } catch (error) {
-        console.error('Reject potential investor error:', error);
-        res.status(500).json({ success: false, message: 'Failed to reject investor' });
+        console.error('Delete potential investor error:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete investor' });
     }
 };
 
@@ -363,5 +383,7 @@ module.exports = {
     getPotentialInvestorDetails,
     updatePotentialInvestor,
     approvePotentialInvestor,
-    rejectPotentialInvestor
+    approvePotentialInvestor,
+    rejectPotentialInvestor,
+    deletePotentialInvestor
 };

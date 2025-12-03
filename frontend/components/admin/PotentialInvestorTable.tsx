@@ -7,13 +7,17 @@ interface PotentialInvestorTableProps {
     onView: (investor: PotentialInvestor) => void;
     onApprove: (id: string) => void;
     onReject: (id: string) => void;
+    onDelete: (id: string) => void;
+    activeTab?: 'pending' | 'reviewed' | 'rejected';
 }
 
 const PotentialInvestorTable: React.FC<PotentialInvestorTableProps> = ({
     investors,
     onView,
     onApprove,
-    onReject
+    onReject,
+    onDelete,
+    activeTab = 'pending'
 }) => {
     return (
         <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
@@ -31,12 +35,16 @@ const PotentialInvestorTable: React.FC<PotentialInvestorTableProps> = ({
                     {investors.length === 0 ? (
                         <tr>
                             <td colSpan={5} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                                No pending investors found.
+                                No {activeTab} investors found.
                             </td>
                         </tr>
                     ) : (
                         investors.map((investor) => (
-                            <tr key={investor._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                            <tr
+                                key={investor._id}
+                                onClick={() => onView(investor)}
+                                className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer"
+                            >
                                 <td className="px-6 py-4">
                                     <div className="font-medium text-gray-900 dark:text-white">{investor.companyName || 'N/A'}</div>
                                     <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
@@ -54,33 +62,62 @@ const PotentialInvestorTable: React.FC<PotentialInvestorTableProps> = ({
                                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{investor.stageOfInvestment}</div>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${investor.status === 'reviewed'
+                                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                                        : investor.status === 'rejected'
+                                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                        }`}>
                                         {investor.status}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex items-center justify-end gap-2">
                                         <button
-                                            onClick={() => onView(investor)}
+                                            onClick={(e) => { e.stopPropagation(); onView(investor); }}
                                             className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                                             title="View Details"
                                         >
                                             <Eye className="w-4 h-4" />
                                         </button>
-                                        <button
-                                            onClick={() => onApprove(investor._id)}
-                                            className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
-                                            title="Approve"
-                                        >
-                                            <Check className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => onReject(investor._id)}
-                                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                            title="Reject"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+
+                                        {activeTab !== 'rejected' && (
+                                            <>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); onApprove(investor._id); }}
+                                                    className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                                                    title="Approve"
+                                                >
+                                                    <Check className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); onReject(investor._id); }}
+                                                    className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                    title="Reject"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </>
+                                        )}
+
+                                        {activeTab === 'rejected' && (
+                                            <>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); onApprove(investor._id); }}
+                                                    className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                                                    title="Approve"
+                                                >
+                                                    <Check className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); onDelete(investor._id); }}
+                                                    className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                    title="Delete Permanently"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 </td>
                             </tr>

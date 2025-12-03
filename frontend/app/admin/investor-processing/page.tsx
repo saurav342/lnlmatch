@@ -6,27 +6,37 @@ import PotentialInvestorTable from '../../../components/admin/PotentialInvestorT
 import PotentialInvestorModal from '../../../components/admin/PotentialInvestorModal';
 import { AdminLayout } from '../../../components/admin/AdminLayout';
 import { SectionHeader } from '../../../components/admin/SectionHeader';
-import { Search, Filter, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import {
+    fetchPotentialInvestors,
+    updatePotentialInvestor,
+    approvePotentialInvestor,
+    rejectPotentialInvestor,
+    deletePotentialInvestor
+} from '../../../lib/adminApi';
 
 const InvestorProcessingPage = () => {
     const [investors, setInvestors] = useState<PotentialInvestor[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [activeBatch, setActiveBatch] = useState<'P1' | 'B1'>('P1');
+    const [activeTab, setActiveTab] = useState<'pending' | 'reviewed' | 'rejected'>('pending');
     const [selectedInvestor, setSelectedInvestor] = useState<PotentialInvestor | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, pages: 1 });
 
-    const fetchInvestors = async () => {
+    const loadInvestors = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/potential-investors?page=${pagination.page}&limit=${pagination.limit}&search=${searchQuery}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            const data = await fetchPotentialInvestors({
+                page: pagination.page,
+                limit: pagination.limit,
+                search: searchQuery,
+                status: activeTab,
+                batch: activeBatch
             });
-            const data = await res.json();
+
             if (data.success) {
                 setInvestors(data.data);
                 setPagination(data.pagination);
@@ -42,8 +52,8 @@ const InvestorProcessingPage = () => {
     };
 
     useEffect(() => {
-        fetchInvestors();
-    }, [pagination.page, searchQuery]);
+        loadInvestors();
+    }, [pagination.page, searchQuery, activeTab, activeBatch]);
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
@@ -57,18 +67,14 @@ const InvestorProcessingPage = () => {
 
     const handleApprove = async (id: string) => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/potential-investors/${id}/approve`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            const data = await res.json();
+            const data = await approvePotentialInvestor(id);
             if (data.success) {
                 toast.success('Investor approved successfully');
-                setIsModalOpen(false);
-                fetchInvestors();
+                // Don't close modal, update local state to show verified status
+                if (selectedInvestor) {
+                    setSelectedInvestor({ ...selectedInvestor, status: 'approved' });
+                }
+                loadInvestors(); // Refresh background list
             } else {
                 toast.error(data.message || 'Failed to approve investor');
             }
@@ -79,21 +85,13 @@ const InvestorProcessingPage = () => {
     };
 
     const handleReject = async (id: string) => {
-        if (!confirm('Are you sure you want to reject and delete this investor?')) return;
-
+        // Soft reject - move to rejected list
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/potential-investors/${id}/reject`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            const data = await res.json();
+            const data = await rejectPotentialInvestor(id);
             if (data.success) {
-                toast.success('Investor rejected successfully');
+                toast.success('Investor moved to rejected list');
                 setIsModalOpen(false);
-                fetchInvestors();
+                loadInvestors();
             } else {
                 toast.error(data.message || 'Failed to reject investor');
             }
@@ -103,28 +101,84 @@ const InvestorProcessingPage = () => {
         }
     };
 
+    const handleDelete = async (id: string) => {
+        if (!confirm('Are you sure you want to permanently delete this investor? This action cannot be undone.')) return;
+
+        try {
+            const data = await deletePotentialInvestor(id);
+            if (data.success) {
+                toast.success('Investor deleted permanently');
+                setIsModalOpen(false);
+                loadInvestors();
+            } else {
+                toast.error(data.message || 'Failed to delete investor');
+            }
+        } catch (error) {
+            console.error('Error deleting investor:', error);
+            toast.error('Failed to delete investor');
+        }
+    };
+
+    const [isProcessing, setIsProcessing] = useState(false);
+
     const handleUpdate = async (id: string, updateData: Partial<PotentialInvestor>) => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/potential-investors/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(updateData)
-            });
-            const data = await res.json();
+            setIsProcessing(true);
+
+            // If updating, set status to 'reviewed' if it's currently 'pending'
+            const dataToUpdate = {
+                ...updateData,
+                status: selectedInvestor?.status === 'pending' ? 'reviewed' : selectedInvestor?.status
+            };
+
+            const data = await updatePotentialInvestor(id, dataToUpdate);
+
             if (data.success) {
                 toast.success('Investor updated successfully');
-                setSelectedInvestor(data.data); // Update local state for modal
-                fetchInvestors(); // Refresh list
+
+                // Wait for 200ms
+                await new Promise(resolve => setTimeout(resolve, 200));
+
+                // Refresh list and find next investor
+                const currentIndex = investors.findIndex(inv => inv._id === id);
+
+                // Fetch fresh data
+                const freshData = await fetchPotentialInvestors({
+                    page: pagination.page,
+                    limit: pagination.limit,
+                    search: searchQuery,
+                    status: activeTab,
+                    batch: activeBatch
+                });
+
+                if (freshData.success) {
+                    setInvestors(freshData.data);
+                    setPagination(freshData.pagination);
+
+                    // Determine next investor
+                    // If we are in 'pending' tab, the updated item is removed, so the item at currentIndex is now the next one
+                    // If we are in 'reviewed' or 'rejected' tab, the item stays, so we want currentIndex + 1
+                    let nextIndex = (activeTab === 'pending' || activeTab === 'rejected') ? currentIndex : currentIndex + 1;
+
+                    // Bounds check
+                    if (nextIndex >= freshData.data.length) {
+                        nextIndex = 0; // Wrap around or handle end of list
+                    }
+
+                    if (freshData.data.length > 0) {
+                        setSelectedInvestor(freshData.data[nextIndex]);
+                    } else {
+                        setIsModalOpen(false); // No more items
+                    }
+                }
             } else {
                 toast.error(data.message || 'Failed to update investor');
             }
         } catch (error) {
             console.error('Error updating investor:', error);
             toast.error('Failed to update investor');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -135,6 +189,61 @@ const InvestorProcessingPage = () => {
                     title="Investor Processing"
                     description="Review and approve potential investors from CSV imports"
                 />
+
+                {/* Batch Selector */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => { setActiveBatch('P1'); setPagination(prev => ({ ...prev, page: 1 })); }}
+                            className={`px-6 py-2.5 rounded-lg font-medium transition-all ${activeBatch === 'P1'
+                                    ? 'bg-blue-600 text-white shadow-md'
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                }`}
+                        >
+                            Investor - P1
+                        </button>
+                        <button
+                            onClick={() => { setActiveBatch('B1'); setPagination(prev => ({ ...prev, page: 1 })); }}
+                            className={`px-6 py-2.5 rounded-lg font-medium transition-all ${activeBatch === 'B1'
+                                    ? 'bg-blue-600 text-white shadow-md'
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                }`}
+                        >
+                            Investor - B1
+                        </button>
+                    </div>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex border-b border-gray-200 dark:border-gray-700">
+                    <button
+                        onClick={() => { setActiveTab('pending'); setPagination(prev => ({ ...prev, page: 1 })); }}
+                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'pending'
+                            ? 'border-blue-600 text-blue-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }`}
+                    >
+                        Pending
+                    </button>
+                    <button
+                        onClick={() => { setActiveTab('reviewed'); setPagination(prev => ({ ...prev, page: 1 })); }}
+                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'reviewed'
+                            ? 'border-blue-600 text-blue-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }`}
+                    >
+                        Reviewed
+                    </button>
+                    <button
+                        onClick={() => { setActiveTab('rejected'); setPagination(prev => ({ ...prev, page: 1 })); }}
+                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'rejected'
+                            ? 'border-blue-600 text-blue-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }`}
+                    >
+                        Rejected
+                    </button>
+                </div>
 
                 {/* Filters */}
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -162,6 +271,8 @@ const InvestorProcessingPage = () => {
                             onView={handleView}
                             onApprove={handleApprove}
                             onReject={handleReject}
+                            onDelete={handleDelete}
+                            activeTab={activeTab}
                         />
 
                         {/* Pagination */}
@@ -196,7 +307,10 @@ const InvestorProcessingPage = () => {
                     onClose={() => setIsModalOpen(false)}
                     onApprove={handleApprove}
                     onReject={handleReject}
+                    onDelete={handleDelete}
                     onUpdate={handleUpdate}
+                    isLoading={isProcessing}
+                    isRejectedTab={activeTab === 'rejected'}
                 />
             </div>
         </AdminLayout>
