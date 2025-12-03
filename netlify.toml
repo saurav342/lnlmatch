@@ -1,16 +1,15 @@
 [build]
-  base = "."
-  publish = "frontend/.next"
-  command = "npm run build"
-
-[functions]
-  directory = "functions"
+  base = "frontend"
+  publish = ".next"
+  command = "npm install && npm run build"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+# Redirect API calls to Render backend
+# Note: Update NEXT_PUBLIC_API_URL in frontend/.env.production after deploying backend
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
+  to = "https://your-backend-url.onrender.com/api/:splat"
   status = 200
   force = true
