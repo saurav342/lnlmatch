@@ -22,6 +22,22 @@ const investorSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    country: {
+        type: String,
+        trim: true
+    },
+    description: {
+        type: String,
+        trim: true
+    },
+    investmentThesis: {
+        type: String,
+        trim: true
+    },
+    regionalFocus: [{
+        type: String,
+        trim: true
+    }],
     ticketSize: {
         min: {
             type: Number,
@@ -32,6 +48,20 @@ const investorSchema = new mongoose.Schema({
             default: 0
         }
     },
+    teamMembers: [{
+        name: {
+            type: String,
+            trim: true
+        },
+        role: {
+            type: String,
+            trim: true
+        },
+        linkedinUrl: {
+            type: String,
+            trim: true
+        }
+    }],
     industries: [{
         type: String,
         trim: true

@@ -169,17 +169,7 @@ export function Navbar() {
                 </nav>
 
                 <div className="ml-auto flex items-center gap-3">
-                    {/* Search */}
-                    <div className="relative hidden xl:flex items-center group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-orange-500 transition-colors" />
-                        <Input
-                            type="search"
-                            placeholder="Search..."
-                            className="w-64 pl-10 h-10 bg-muted/40 border-transparent focus:bg-background focus:border-orange-500/50 transition-all duration-300 rounded-full"
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-1 pl-2 border-l border-border/40">
+                    <div className="flex items-center gap-1">
                         {/* Notifications */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -212,18 +202,6 @@ export function Navbar() {
                                 </div>
                             </DropdownMenuContent>
                         </DropdownMenu>
-
-                        {/* Theme Toggle */}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-10 w-10 rounded-full hover:bg-orange-500/10 hover:text-orange-600 transition-colors"
-                            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                        >
-                            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                            <span className="sr-only">Toggle theme</span>
-                        </Button>
 
                         {/* User Profile */}
                         <DropdownMenu>
