@@ -56,6 +56,11 @@ const investorSchema = new mongoose.Schema({
         type: String,
         trim: true
     }],
+    type: {
+        type: String,
+        enum: ['Angel', 'Institutional'],
+        index: true
+    },
     isActive: {
         type: Boolean,
         default: true,

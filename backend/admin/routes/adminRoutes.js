@@ -118,12 +118,12 @@ router.get(
     investorController.downloadTemplate
 );
 
-// New route for investor upload
+// New route for investor upload (Custom for specific Excel format)
 router.post(
     '/investors/upload',
     uploadSingleExcel,
     handleUploadError,
-    logAdminActivity('upload_investors_file', 'investor'), // Added logAdminActivity for consistency
+    logAdminActivity('upload_investors_file', 'investor'),
     investorUploadController.uploadInvestors
 );
 

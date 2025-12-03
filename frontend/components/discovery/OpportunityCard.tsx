@@ -90,7 +90,7 @@ export function OpportunityCard({ data, type, onViewDetails, onToggleWishlist }:
                     onClick={() => onToggleWishlist?.(data.id)}
                 >
                     <Heart className={cn("mr-2 h-4 w-4", data.isWishlisted && "fill-current")} />
-                    {data.isWishlisted ? "Wishlisted" : "Add to Wishlist"}
+                    {data.isWishlisted ? "Wishlisted" : "Wishlist"}
                 </Button>
                 <Button
                     variant="outline"

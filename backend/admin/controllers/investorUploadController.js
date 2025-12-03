@@ -1,87 +1,126 @@
-const xlsx = require('xlsx');
+const XLSX = require('xlsx');
 const Investor = require('../models/Investor');
 
-// Helper to validate email format
-const isValidEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-};
-
-exports.uploadInvestors = async (req, res) => {
+const uploadInvestors = async (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).json({ success: false, message: 'No file uploaded' });
+            return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const data = xlsx.utils.sheet_to_json(sheet);
+        const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+        const sheetNames = workbook.SheetNames;
 
-        if (!data || data.length === 0) {
-            return res.status(400).json({ success: false, message: 'Excel sheet is empty' });
+        let totalProcessed = 0;
+        let totalUpdated = 0;
+        let totalCreated = 0;
+        let errors = [];
+
+        // Process Angel Investors
+        if (sheetNames.includes('Angel Investors')) {
+            const sheet = workbook.Sheets['Angel Investors'];
+            const data = XLSX.utils.sheet_to_json(sheet);
+
+            for (const row of data) {
+                try {
+                    const email = row['Email Address'];
+                    if (!email) continue; // Skip if no email
+
+                    const investorData = {
+                        name: row['Name'],
+                        company: row['Company'],
+                        location: row['Country'],
+                        email: email.toLowerCase(),
+                        linkedinUrl: row['LinkedIn Profile'],
+                        source: 'excel-import',
+                        type: 'Angel',
+                        tags: ['Angel']
+                    };
+
+                    // Check if featured
+                    if (row['Featured'] === 'Yes' || row['Featured'] === true) {
+                        investorData.isWishlisted = true;
+                    }
+
+                    const result = await Investor.updateOne(
+                        { email: investorData.email },
+                        { $set: investorData, $setOnInsert: { isActive: true } },
+                        { upsert: true }
+                    );
+
+                    if (result.upsertedCount > 0) totalCreated++;
+                    else if (result.modifiedCount > 0) totalUpdated++;
+                    totalProcessed++;
+
+                } catch (err) {
+                    errors.push(`Error processing Angel Investor row: ${err.message}`);
+                }
+            }
         }
 
-        let successCount = 0;
-        let errorCount = 0;
-        const errors = [];
+        // Process Institutional Investors
+        if (sheetNames.includes('Institutional Investors')) {
+            const sheet = workbook.Sheets['Institutional Investors'];
+            const data = XLSX.utils.sheet_to_json(sheet);
 
-        for (const [index, row] of data.entries()) {
-            const rowNumber = index + 2; // +1 for 0-index, +1 for header row
+            for (const row of data) {
+                try {
+                    const email = row['Contact Information'];
 
-            try {
-                // Basic validation
-                if (!row.email || !isValidEmail(row.email)) {
-                    throw new Error(`Invalid or missing email: ${row.email || 'N/A'}`);
+                    if (!email) {
+                        continue;
+                    }
+
+                    const industries = row['Industry Focus'] ? row['Industry Focus'].split(',').map(s => s.trim()) : [];
+
+                    const investorData = {
+                        name: row['Investor Name / ID'],
+                        notes: `${row['Description'] || ''}\n\nThesis: ${row['Investment Thesis'] || ''}`,
+                        location: row['Country'],
+                        email: email.toLowerCase(),
+                        websiteUrl: row['Website'],
+                        industries: industries,
+                        source: 'excel-import',
+                        type: 'Institutional',
+                        tags: ['Institutional']
+                    };
+
+                    if (row['Investor Type']) {
+                        investorData.tags.push(row['Investor Type']);
+                    }
+
+                    const result = await Investor.updateOne(
+                        { email: investorData.email },
+                        { $set: investorData, $setOnInsert: { isActive: true } },
+                        { upsert: true }
+                    );
+
+                    if (result.upsertedCount > 0) totalCreated++;
+                    else if (result.modifiedCount > 0) totalUpdated++;
+                    totalProcessed++;
+
+                } catch (err) {
+                    errors.push(`Error processing Institutional Investor row: ${err.message}`);
                 }
-                if (!row.name) {
-                    throw new Error('Missing name');
-                }
-
-                // Prepare investor object
-                const investorData = {
-                    name: row.name,
-                    email: row.email,
-                    company: row.company || row.organization || '',
-                    role: row.role || row.designation || 'Investor',
-                    location: row.location || '',
-                    ticketSize: {
-                        min: row.minTicketSize ? Number(row.minTicketSize) : 0,
-                        max: row.maxTicketSize ? Number(row.maxTicketSize) : 0
-                    },
-                    industries: row.industries ? row.industries.split(',').map(i => i.trim()) : [],
-                    investmentStage: row.stage ? row.stage.split(',').map(s => s.trim()) : [],
-                    isVerified: true, // Auto-verify uploaded investors? Let's assume yes for admin upload
-                    isActive: true,
-                    updatedAt: new Date()
-                };
-
-                // Upsert: Update if exists, Insert if new
-                await Investor.findOneAndUpdate(
-                    { email: row.email },
-                    { $set: investorData, $setOnInsert: { createdAt: new Date() } },
-                    { upsert: true, new: true, runValidators: true }
-                );
-
-                successCount++;
-            } catch (err) {
-                errorCount++;
-                errors.push({ row: rowNumber, message: err.message, data: row });
             }
         }
 
         res.status(200).json({
-            success: true,
-            message: `Processed ${data.length} rows`,
-            summary: {
-                total: data.length,
-                success: successCount,
-                failed: errorCount,
-                errors: errors.slice(0, 50) // Limit error details
-            }
+            message: 'Upload processed successfully',
+            stats: {
+                processed: totalProcessed,
+                created: totalCreated,
+                updated: totalUpdated,
+                errors: errors.length
+            },
+            errors: errors.length > 0 ? errors : undefined
         });
 
     } catch (error) {
         console.error('Upload error:', error);
-        res.status(500).json({ success: false, message: 'Failed to process file', error: error.message });
+        res.status(500).json({ message: 'Error processing file upload', error: error.message });
     }
+};
+
+module.exports = {
+    uploadInvestors
 };

@@ -3,7 +3,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/a
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     return {
         'Content-Type': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` })
@@ -288,7 +288,7 @@ export async function uploadInvestorsExcel(file: File) {
     const formData = new FormData();
     formData.append('file', file);
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     const response = await fetch(`${API_BASE_URL}/admin/investors/upload-excel`, {
         method: 'POST',
         headers: {

@@ -60,9 +60,12 @@ export function ExcelUploadModal({ onSuccess }: ExcelUploadModalProps) {
 
             const data = await response.json();
 
-            if (response.ok && data.success) {
+            if (response.ok) {
                 setProgress(100);
-                setResult(data.summary);
+                setResult(data.stats);
+                if (data.errors && data.errors.length > 0) {
+                    setError("Some rows failed to process");
+                }
                 onSuccess();
             } else {
                 throw new Error(data.message || "Upload failed");
@@ -98,7 +101,7 @@ export function ExcelUploadModal({ onSuccess }: ExcelUploadModalProps) {
                         Upload an Excel file (.xlsx) to bulk add or update investors.
                         <br />
                         <span className="text-xs text-muted-foreground">
-                            Required columns: name, email. Optional: company, role, location, minTicketSize, maxTicketSize, industries, stage.
+                            Supports "Angel Investors" and "Institutional Investors" sheets.
                         </span>
                     </DialogDescription>
                 </DialogHeader>
@@ -109,7 +112,7 @@ export function ExcelUploadModal({ onSuccess }: ExcelUploadModalProps) {
                         <Input
                             id="file"
                             type="file"
-                            accept=".xlsx, .xls, .csv"
+                            accept=".xlsx, .xls"
                             onChange={handleFileChange}
                             disabled={uploading}
                         />
@@ -138,17 +141,12 @@ export function ExcelUploadModal({ onSuccess }: ExcelUploadModalProps) {
                             <CheckCircle className="h-4 w-4" />
                             <AlertTitle>Upload Complete</AlertTitle>
                             <AlertDescription>
-                                Processed: {result.total} | Success: {result.success} | Failed: {result.failed}
-                                {result.failed > 0 && (
-                                    <div className="mt-2 text-xs max-h-20 overflow-y-auto">
-                                        <p className="font-semibold">Errors:</p>
-                                        <ul className="list-disc pl-4">
-                                            {result.errors.map((e: any, i: number) => (
-                                                <li key={i}>Row {e.row}: {e.message}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
+                                <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                                    <div>Processed: {result.processed}</div>
+                                    <div>Created: {result.created}</div>
+                                    <div>Updated: {result.updated}</div>
+                                    <div>Errors: {result.errors}</div>
+                                </div>
                             </AlertDescription>
                         </Alert>
                     )}

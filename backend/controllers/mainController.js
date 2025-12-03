@@ -1,6 +1,6 @@
 // backend/controllers/mainController.js
-const { stats, investors, grants, campaigns, userProfile } = require('../data/mockData');
 const User = require('../admin/models/User');
+const Investor = require('../admin/models/Investor');
 const jwt = require('jsonwebtoken');
 
 const { OAuth2Client } = require('google-auth-library');
@@ -15,19 +15,66 @@ let emailConnection = {
 };
 
 const getDashboardStats = (req, res) => {
-    res.json(stats);
+    // Return empty stats instead of mock data
+    res.json({
+        potentialMatches: 0,
+        grantsAvailable: 0,
+        activeInvestors: 0,
+        profileViews: 0,
+        emailsSent: 0,
+    });
 };
 
-const getInvestors = (req, res) => {
-    res.json(investors);
+const getInvestors = async (req, res) => {
+    try {
+        const investors = await Investor.find({});
+
+        // Transform data to match frontend expectations
+        const transformedInvestors = investors.map(inv => {
+            const investor = inv.toObject();
+            return {
+                id: investor._id.toString(),
+                name: investor.name,
+                email: investor.email,
+                company: investor.company || 'N/A',
+                location: investor.location || 'N/A',
+                ticketSize: investor.ticketSize && (investor.ticketSize.min || investor.ticketSize.max)
+                    ? `$${investor.ticketSize.min || 0}K - $${investor.ticketSize.max || 0}K`
+                    : 'N/A',
+                industries: investor.industries || [],
+                investmentStage: investor.investmentStage || [],
+                linkedinUrl: investor.linkedinUrl,
+                websiteUrl: investor.websiteUrl,
+                website: investor.websiteUrl, // Map websiteUrl to website for frontend
+                notes: investor.notes,
+                description: investor.notes || 'No description available.', // Map notes to description
+                tags: investor.tags || [],
+                type: investor.type,
+                isActive: investor.isActive,
+                isVerified: investor.isVerified,
+                isWishlisted: investor.isWishlisted || false,
+                avatar: investor.avatar,
+                source: investor.source,
+                createdAt: investor.createdAt,
+                updatedAt: investor.updatedAt
+            };
+        });
+
+        res.json(transformedInvestors);
+    } catch (error) {
+        console.error('Error fetching investors:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch investors' });
+    }
 };
 
 const getGrants = (req, res) => {
-    res.json(grants);
+    // Return empty grants array instead of mock data
+    res.json([]);
 };
 
 const getCampaigns = (req, res) => {
-    res.json(campaigns);
+    // Return empty campaigns array instead of mock data
+    res.json([]);
 };
 
 const getUserProfile = async (req, res) => {

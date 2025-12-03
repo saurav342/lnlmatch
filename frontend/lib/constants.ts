@@ -11,23 +11,6 @@ export const NAVIGATION: NavigationItem[] = [
         name: "Fundraising",
         href: "/fundraising",
         icon: "Building2",
-        children: [
-            {
-                name: "Angel Investors",
-                href: "/discovery/angels",
-                icon: "Users",
-            },
-            {
-                name: "Institutional Investors",
-                href: "/discovery/institutional",
-                icon: "Building2",
-            },
-            {
-                name: "Grants",
-                href: "/discovery/grants",
-                icon: "Award",
-            },
-        ],
     },
     {
         name: "CRM",

@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 
 import { API_BASE_URL } from "@/lib/api";
 import { ExcelUploadModal } from "@/components/admin/ExcelUploadModal";
+import { InvestorModal } from "@/components/admin/InvestorModal";
 
 export default function InvestorsPage() {
     const router = useRouter();
@@ -32,8 +33,65 @@ export default function InvestorsPage() {
     const [total, setTotal] = useState(0);
     const [refreshKey, setRefreshKey] = useState(0);
 
+    const [selectedInvestor, setSelectedInvestor] = useState<any>(null);
+    const [modalMode, setModalMode] = useState<"view" | "edit" | "create">("view");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     const handleRefresh = () => {
         setRefreshKey(prev => prev + 1);
+    };
+
+    const handleView = (investor: any) => {
+        setSelectedInvestor(investor);
+        setModalMode("view");
+        setIsModalOpen(true);
+    };
+
+    const handleEdit = (investor: any) => {
+        setSelectedInvestor(investor);
+        setModalMode("edit");
+        setIsModalOpen(true);
+    };
+
+    const handleCreate = () => {
+        setSelectedInvestor(null);
+        setModalMode("create");
+        setIsModalOpen(true);
+    };
+
+    const handleSave = async (data: any) => {
+        try {
+            const token = localStorage.getItem('authToken');
+            const headers: HeadersInit = {
+                'Content-Type': 'application/json'
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            let url = `${API_BASE_URL}/admin/investors`;
+            let method = 'POST';
+
+            if (modalMode === 'edit' && selectedInvestor) {
+                url = `${API_BASE_URL}/admin/investors/${selectedInvestor._id}`;
+                method = 'PATCH';
+            }
+
+            const response = await fetch(url, {
+                method,
+                headers,
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save investor');
+            }
+
+            handleRefresh();
+        } catch (error) {
+            console.error("Error saving investor:", error);
+            // Ideally show a toast notification here
+        }
     };
 
     useEffect(() => {
@@ -177,10 +235,10 @@ export default function InvestorsPage() {
             label: "Actions",
             render: (item: any) => (
                 <div className="flex gap-2">
-                    <Button size="sm" variant="ghost" onClick={(e) => e.stopPropagation()}>
+                    <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); handleView(item); }}>
                         View
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={(e) => e.stopPropagation()}>
+                    <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); handleEdit(item); }}>
                         Edit
                     </Button>
                 </div>
@@ -195,7 +253,10 @@ export default function InvestorsPage() {
                     title="Investor Management"
                     description="Manage all investors and their profiles"
                     action={
-                        <Button className="gap-2 bg-gradient-to-r from-[var(--admin-mid)] to-[var(--admin-strong)] hover:from-[var(--admin-strong)] hover:to-[var(--admin-success)] text-gray-900">
+                        <Button
+                            onClick={handleCreate}
+                            className="gap-2 bg-gradient-to-r from-[var(--admin-mid)] to-[var(--admin-strong)] hover:from-[var(--admin-strong)] hover:to-[var(--admin-success)] text-gray-900"
+                        >
                             <Building2 className="h-4 w-4" />
                             Add Investor
                         </Button>
@@ -259,6 +320,14 @@ export default function InvestorsPage() {
                     />
                 )}
             </div>
+
+            <InvestorModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                mode={modalMode}
+                investor={selectedInvestor}
+                onSave={handleSave}
+            />
         </AdminLayout>
     );
 }
