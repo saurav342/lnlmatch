@@ -218,10 +218,6 @@ const InvestorProcessingPage = () => {
     return (
         <AdminLayout>
             <div className="space-y-6">
-                <SectionHeader
-                    title="Investor Processing"
-                    description="Review and approve potential investors from CSV imports"
-                />
 
                 {/* Tabs */}
                 <div className="border-b border-gray-200 dark:border-gray-700">
