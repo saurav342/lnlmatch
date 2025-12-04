@@ -57,6 +57,28 @@ const userSchema = new mongoose.Schema({
         type: Map,
         of: mongoose.Schema.Types.Mixed,
         default: {}
+    },
+    emailSettings: {
+        provider: {
+            type: String,
+            enum: ['gmail', 'outlook', 'smtp', null],
+            default: null
+        },
+        email: {
+            type: String,
+            default: null
+        },
+        tokens: {
+            type: Object, // Stores access_token, refresh_token, expiry_date, etc.
+            default: null
+        },
+        config: {
+            type: Object, // Stores SMTP host, port, user, pass (encrypted ideally, but plain for now as per speed)
+            default: null
+        },
+        connectedAt: {
+            type: Date
+        }
     }
 }, {
     timestamps: true

@@ -22,16 +22,20 @@ router.get('/user/profile', getUserProfile);
 router.get('/auth/google', initiateGmailAuth);
 router.get('/auth/google/callback', handleGmailCallback);
 
+router.get('/auth/outlook', require('../controllers/mainController').initiateOutlookAuth);
+router.get('/auth/outlook/callback', require('../controllers/mainController').handleOutlookCallback);
+
 // Authentication Routes
 router.post('/auth/login', require('../controllers/mainController').login);
 router.post('/auth/signup', require('../controllers/mainController').signup);
 
 router.post('/email/connect/outlook', (req, res) => {
-    res.json({ success: true, message: 'Outlook connection initiated' });
+    // This might be a legacy route or a direct post if not using OAuth flow?
+    // Based on the UI, it's likely an OAuth flow, so we use the GET routes above.
+    // We'll keep this for now but it might be unused if we switch to OAuth.
+    res.json({ success: true, message: 'Please use /auth/outlook for OAuth connection' });
 });
-router.post('/email/connect/smtp', (req, res) => {
-    res.json({ success: true, message: 'SMTP configuration saved' });
-});
+router.post('/email/connect/smtp', require('../controllers/mainController').saveSmtpSettings);
 router.get('/email/status', getEmailStatus);
 router.post('/email/send', require('../controllers/mainController').sendEmail);
 
