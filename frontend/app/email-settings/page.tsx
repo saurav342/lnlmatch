@@ -17,7 +17,12 @@ export default function EmailSettingsPage() {
         if (provider === 'Gmail') {
             try {
                 // Call backend to get auth URL
-                const response = await fetch(`${API_BASE_URL}/auth/google`);
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE_URL}/auth/google`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 const data = await response.json();
                 if (data.url) {
                     window.location.href = data.url;

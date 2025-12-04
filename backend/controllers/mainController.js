@@ -116,23 +116,24 @@ const getUserProfile = async (req, res) => {
 // --- GMAIL ---
 
 const initiateGmailAuth = (req, res) => {
-    // In a real app, we should pass a random state to prevent CSRF and also to identify the user on callback
-    // For now, we'll assume the user is logged in on the frontend and we'll handle the mapping on callback via a temporary cookie or similar if needed.
-    // However, since we don't have sessions set up, we'll rely on the user being logged in when they hit the callback endpoint?
-    // Actually, the callback comes from Google. We need to know WHICH user initiated this.
-    // A common pattern is to pass the JWT token in the 'state' parameter, but that can be large.
-    // We'll pass a simple state string for now.
-
     const oAuth2Client = new OAuth2Client(
         process.env.GMAIL_CLIENT_ID,
         process.env.GMAIL_CLIENT_SECRET,
         process.env.GMAIL_REDIRECT_URI
     );
 
-    // We can pass the user's ID in the state if we had it. 
-    // For this implementation, we will assume single-user dev environment or we'll need the frontend to handle the token on return.
-    // Let's try to get the user ID from the query if provided, otherwise just standard flow.
-    const state = req.query.userId || 'dev-user';
+    // Get user ID from token to ensure we update the correct user on callback
+    let state = 'dev-user';
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        try {
+            const token = authHeader.split(' ')[1];
+            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+            state = decoded.id;
+        } catch (e) {
+            console.error('Error decoding token for Gmail auth state:', e);
+        }
+    }
 
     const authorizeUrl = oAuth2Client.generateAuthUrl({
         access_type: 'offline', // Required to get refresh token
