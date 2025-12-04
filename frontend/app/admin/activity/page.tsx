@@ -15,6 +15,7 @@ import {
 import { Search, Activity } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { generateActivitySentence, formatActivityTimestamp, getActionColor } from "@/lib/activityUtils";
 
 import { API_BASE_URL } from "@/lib/api";
 
@@ -28,6 +29,28 @@ export default function ActivityLogPage() {
     const [activityLog, setActivityLog] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [total, setTotal] = useState(0);
+    const [userRole, setUserRole] = useState<string>('admin');
+
+    // Check user role on mount
+    useEffect(() => {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                setUserRole(user.userType || 'admin');
+
+                // Redirect if not superadmin
+                if (user.userType !== 'superadmin') {
+                    router.push('/admin');
+                }
+            } catch (e) {
+                console.error('Failed to parse user data', e);
+                router.push('/admin');
+            }
+        } else {
+            router.push('/login');
+        }
+    }, [router]);
 
     useEffect(() => {
         const fetchActivityLog = async () => {
@@ -76,11 +99,16 @@ export default function ActivityLogPage() {
 
     const columns = [
         {
-            key: "timestamp",
-            label: "Timestamp",
+            key: "description",
+            label: "Activity",
             render: (item: any) => (
-                <div className="font-mono text-sm text-muted-foreground">
-                    {new Date(item.timestamp).toLocaleString()}
+                <div className="flex flex-col">
+                    <span className={`font-medium ${getActionColor(item.action)}`}>
+                        {generateActivitySentence(item)}
+                    </span>
+                    <span className="text-xs text-muted-foreground mt-1">
+                        {formatActivityTimestamp(item.timestamp)}
+                    </span>
                 </div>
             ),
         },
@@ -136,6 +164,11 @@ export default function ActivityLogPage() {
         },
     ];
 
+    // Don't render if not superadmin
+    if (userRole !== 'superadmin') {
+        return null;
+    }
+
     return (
         <AdminLayout>
             <div className="space-y-6">
@@ -176,6 +209,7 @@ export default function ActivityLogPage() {
                             <SelectItem value="all">All Types</SelectItem>
                             <SelectItem value="user">User</SelectItem>
                             <SelectItem value="investor">Investor</SelectItem>
+                            <SelectItem value="potential_investor">Potential Investor</SelectItem>
                             <SelectItem value="subscription">Subscription</SelectItem>
                             <SelectItem value="system">System</SelectItem>
                         </SelectContent>

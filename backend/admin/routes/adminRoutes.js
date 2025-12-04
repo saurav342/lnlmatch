@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { verifyAdmin, logAdminActivity } = require('../middleware/adminAuth');
+const { verifyAdmin, verifySuperAdmin, logAdminActivity } = require('../middleware/adminAuth');
 const { uploadSingleExcel, handleUploadError } = require('../middleware/uploadMiddleware');
 
 const adminController = require('../controllers/adminController');
@@ -17,7 +17,10 @@ router.use(verifyAdmin);
 // Dashboard Routes
 // ============================================
 router.get('/dashboard/stats', adminController.getDashboardStats);
-router.get('/dashboard/activity-log', adminController.getActivityLog);
+
+// Activity Log - Superadmin Only
+router.get('/dashboard/activity-log', verifySuperAdmin, adminController.getActivityLog);
+
 router.get('/system/health', adminController.getSystemHealth);
 
 // ============================================

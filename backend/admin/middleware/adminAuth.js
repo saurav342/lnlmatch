@@ -33,8 +33,8 @@ const verifyAdmin = async (req, res, next) => {
             });
         }
 
-        // Check if user is admin
-        if (user.userType !== 'admin') {
+        // Check if user is admin or superadmin
+        if (user.userType !== 'admin' && user.userType !== 'superadmin') {
             return res.status(403).json({
                 success: false,
                 message: 'Access denied. Admin privileges required.'
@@ -93,7 +93,58 @@ const logAdminActivity = (action, targetType) => {
     };
 };
 
+/**
+ * Middleware to verify superadmin authentication
+ * Only allows superadmin users to access certain features
+ */
+const verifySuperAdmin = async (req, res, next) => {
+    try {
+        // Get token from Authorization header
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({
+                success: false,
+                message: 'Access denied. No token provided.'
+            });
+        }
+
+        const token = authHeader.split(' ')[1];
+
+        // Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+
+        // Get user from DB
+        const user = await User.findById(decoded.id).select('-password');
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Check if user is superadmin
+        if (user.userType !== 'superadmin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. Superadmin privileges required.'
+            });
+        }
+
+        req.user = user;
+        next();
+    } catch (error) {
+        console.error('Auth error:', error.message);
+        return res.status(401).json({
+            success: false,
+            message: 'Invalid or expired token'
+        });
+    }
+};
+
 module.exports = {
     verifyAdmin,
+    verifySuperAdmin,
     logAdminActivity
 };

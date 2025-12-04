@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
     },
     userType: {
         type: String,
-        enum: ['founder', 'investor', 'admin'],
+        enum: ['founder', 'investor', 'admin', 'superadmin'],
         default: 'founder'
     },
     subscriptionPlan: {

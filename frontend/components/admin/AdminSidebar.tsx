@@ -30,6 +30,34 @@ const navigation = [
 export function AdminSidebar() {
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
+    const [userRole, setUserRole] = useState<string>('admin');
+
+    // Get user role from localStorage on mount
+    useState(() => {
+        if (typeof window !== 'undefined') {
+            // Try to get user info from localStorage
+            const token = localStorage.getItem('authToken');
+            const userStr = localStorage.getItem('user');
+
+            if (userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    setUserRole(user.userType || 'admin');
+                } catch (e) {
+                    console.error('Failed to parse user data', e);
+                }
+            }
+        }
+    });
+
+    // Filter navigation items based on role
+    const filteredNavigation = navigation.filter(item => {
+        // Only show Activity Log to superadmin users
+        if (item.name === 'Activity Log') {
+            return userRole === 'superadmin';
+        }
+        return true;
+    });
 
     const isActive = (href: string) => {
         if (href === "/admin") {
@@ -78,7 +106,7 @@ export function AdminSidebar() {
 
                 {/* Navigation */}
                 <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-                    {navigation.map((item) => {
+                    {filteredNavigation.map((item) => {
                         const Icon = item.icon;
                         const active = isActive(item.href);
 

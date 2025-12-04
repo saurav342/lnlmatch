@@ -15,12 +15,16 @@ const adminActivitySchema = new mongoose.Schema({
     },
     targetType: {
         type: String,
-        enum: ['user', 'investor', 'subscription', 'system', 'data'],
+        enum: ['user', 'investor', 'potential_investor', 'subscription', 'system', 'data'],
         required: true,
         index: true
     },
     targetId: {
         type: mongoose.Schema.Types.ObjectId
+    },
+    actionDetails: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {}
     },
     metadata: {
         type: Map,
