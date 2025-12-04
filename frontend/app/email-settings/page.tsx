@@ -15,7 +15,14 @@ export default function EmailSettingsPage() {
 
     const handleConnect = async (provider: string) => {
         if (provider === 'Gmail') {
+            // Open window immediately to avoid popup blocker
+            const authWindow = window.open('', '_blank');
+
             try {
+                if (authWindow) {
+                    authWindow.document.write('Loading Google Auth...');
+                }
+
                 // Call backend to get auth URL
                 const token = localStorage.getItem('authToken');
                 const response = await fetch(`${API_BASE_URL}/auth/google`, {
@@ -24,11 +31,14 @@ export default function EmailSettingsPage() {
                     }
                 });
                 const data = await response.json();
-                if (data.url) {
-                    window.location.href = data.url;
+                if (data.url && authWindow) {
+                    authWindow.location.href = data.url;
+                } else if (authWindow) {
+                    authWindow.close();
                 }
             } catch (error) {
                 console.error('Failed to initiate Gmail auth:', error);
+                if (authWindow) authWindow.close();
             }
             return;
         }
