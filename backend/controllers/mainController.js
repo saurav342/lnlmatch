@@ -379,71 +379,59 @@ const sendEmail = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Email address not found in settings. Please reconnect your account.' });
         }
 
-        let transporter;
-
         if (provider === 'gmail') {
-            console.log(`[SendEmail] Preparing to send via Gmail for user ${user.email} (Sender: ${email})`);
-
-            if (!tokens || !tokens.refresh_token) {
-                console.error('[SendEmail] Missing refresh token for Gmail');
-                return res.status(401).json({ success: false, message: 'Email connection expired (missing refresh token). Please reconnect.' });
-            }
-
-            const oAuth2Client = new OAuth2Client(
-                process.env.GMAIL_CLIENT_ID,
-                process.env.GMAIL_CLIENT_SECRET,
-                process.env.GMAIL_REDIRECT_URI
-            );
-
-            // Ensure tokens is a plain object
-            const tokenData = JSON.parse(JSON.stringify(tokens));
-            oAuth2Client.setCredentials(tokenData);
-
-            let accessToken = tokenData.access_token;
-
-            // Refresh token if needed and get new access token
             try {
-                const response = await oAuth2Client.getAccessToken();
-                const newAccessToken = response.token;
+                const oAuth2Client = new OAuth2Client(
+                    process.env.GMAIL_CLIENT_ID,
+                    process.env.GMAIL_CLIENT_SECRET,
+                    process.env.GMAIL_REDIRECT_URI
+                );
 
-                if (newAccessToken) {
-                    accessToken = newAccessToken;
-                    console.log('[SendEmail] Successfully retrieved access token');
+                // Set the credentials from the DB
+                // Ensure we have the refresh token for auto-refreshing
+                oAuth2Client.setCredentials(tokens);
 
-                    // Update tokens in DB if they changed
-                    if (oAuth2Client.credentials.access_token && oAuth2Client.credentials.access_token !== tokenData.access_token) {
-                        console.log('[SendEmail] Tokens refreshed, updating DB');
-                        user.emailSettings.tokens = {
-                            ...tokenData,
-                            ...oAuth2Client.credentials
-                        };
-                        await user.save();
-                    }
-                } else {
-                    console.warn('[SendEmail] getAccessToken returned empty token, using existing if available');
+                const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+
+                // Create raw email
+                // Note: simple text/plain construction as per user's working snippet
+                const messageParts = [
+                    `To: ${to}`,
+                    'Content-Type: text/plain; charset=utf-8',
+                    'MIME-Version: 1.0',
+                    `Subject: ${subject}`,
+                    '',
+                    body
+                ];
+                const message = messageParts.join('\n');
+
+                // Encode the message
+                const encodedMessage = Buffer.from(message)
+                    .toString('base64')
+                    .replace(/\+/g, '-')
+                    .replace(/\//g, '_')
+                    .replace(/=+$/, '');
+
+                await gmail.users.messages.send({
+                    userId: 'me',
+                    requestBody: {
+                        raw: encodedMessage,
+                    },
+                });
+
+                console.log(`[SendEmail] Email sent successfully via Gmail API to ${to}`);
+                res.json({ success: true, message: 'Email sent successfully' });
+            } catch (gmailError) {
+                console.error('Gmail API Error:', gmailError);
+                // Handle token expiry specifically if possible, but generic error for now
+                if (gmailError.code === 401 || (gmailError.response && gmailError.response.status === 401)) {
+                    return res.status(401).json({ success: false, message: 'Email authentication failed. Please reconnect your email account.' });
                 }
-            } catch (tokenError) {
-                console.error('[SendEmail] Error refreshing/getting access token:', tokenError);
-                return res.status(401).json({ success: false, message: 'Failed to refresh email connection. Please reconnect your account.' });
+                throw gmailError;
             }
 
-            transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    type: 'OAuth2',
-                    user: email,
-                    clientId: process.env.GMAIL_CLIENT_ID,
-                    clientSecret: process.env.GMAIL_CLIENT_SECRET,
-                    refreshToken: tokenData.refresh_token,
-                    accessToken: accessToken,
-                },
-            });
         } else if (provider === 'outlook') {
-            // Outlook logic using nodemailer with OAuth2
-            // Note: Outlook OAuth with Nodemailer can be tricky.
-            // Often easier to use Microsoft Graph API directly for sending.
-
-            // Using Graph API
+            // Outlook logic using Graph API (kept from previous robust version)
             const client = new AuthorizationCode({
                 client: { id: process.env.OUTLOOK_CLIENT_ID, secret: process.env.OUTLOOK_CLIENT_SECRET },
                 auth: { tokenHost: 'https://login.microsoftonline.com', tokenPath: '/common/oauth2/v2.0/token' }
@@ -491,7 +479,7 @@ const sendEmail = async (req, res) => {
             return res.json({ success: true, message: 'Email sent successfully via Outlook' });
 
         } else if (provider === 'smtp') {
-            transporter = nodemailer.createTransport({
+            const transporter = nodemailer.createTransport({
                 host: config.host,
                 port: config.port,
                 secure: config.port === 465,
@@ -500,9 +488,7 @@ const sendEmail = async (req, res) => {
                     pass: config.password,
                 },
             });
-        }
 
-        if (transporter) {
             await transporter.sendMail({
                 from: email,
                 to,
@@ -517,7 +503,7 @@ const sendEmail = async (req, res) => {
         console.error('Error sending email:', error);
         // Check for specific SMTP auth errors
         if (error.responseCode === 535) {
-            return res.status(401).json({ success: false, message: 'Email authentication failed (535). Please reconnect your email account. Details: ' + error.message });
+            return res.status(401).json({ success: false, message: 'Email authentication failed. Please reconnect your email account.' });
         }
         res.status(500).json({ success: false, message: 'Failed to send email: ' + error.message });
     }
