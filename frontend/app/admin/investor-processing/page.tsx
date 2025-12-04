@@ -17,7 +17,7 @@ const TABS: { label: string; value: InvestorStatus; color: string }[] = [
     { label: 'Pending', value: 'pending', color: 'blue' },
     { label: 'Verified', value: 'verified', color: 'purple' },
     { label: 'Rejected', value: 'rejected', color: 'red' },
-    { label: 'Approved', value: 'approved', color: 'green' }
+    // { label: 'Approved', value: 'approved', color: 'green' }
 ];
 
 const InvestorProcessingPage = () => {
