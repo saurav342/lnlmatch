@@ -9,7 +9,7 @@ import { SectionHeader } from '../../../components/admin/SectionHeader';
 import { Search, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
 
 type InvestorStatus = 'pending' | 'verified' | 'rejected' | 'approved';
 
@@ -35,7 +35,7 @@ const InvestorProcessingPage = () => {
             setLoading(true);
             const token = localStorage.getItem('authToken');
             const currentStatus = status || activeTab;
-            const res = await fetch(`${API_BASE_URL}/api/admin/potential-investors?page=${pagination.page}&limit=${pagination.limit}&search=${searchQuery}&status=${currentStatus}`, {
+            const res = await fetch(`${API_BASE_URL}/admin/potential-investors?page=${pagination.page}&limit=${pagination.limit}&search=${searchQuery}&status=${currentStatus}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -116,7 +116,7 @@ const InvestorProcessingPage = () => {
     const handleApprove = async (id: string) => {
         try {
             const token = localStorage.getItem('authToken');
-            const res = await fetch(`${API_BASE_URL}/api/admin/potential-investors/${id}/approve`, {
+            const res = await fetch(`${API_BASE_URL}/admin/potential-investors/${id}/approve`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -140,7 +140,7 @@ const InvestorProcessingPage = () => {
 
         try {
             const token = localStorage.getItem('authToken');
-            const res = await fetch(`${API_BASE_URL}/api/admin/potential-investors/${id}/reject`, {
+            const res = await fetch(`${API_BASE_URL}/admin/potential-investors/${id}/reject`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -162,7 +162,7 @@ const InvestorProcessingPage = () => {
     const handleUpdate = async (id: string, updateData: Partial<PotentialInvestor>) => {
         try {
             const token = localStorage.getItem('authToken');
-            const res = await fetch(`${API_BASE_URL}/api/admin/potential-investors/${id}`, {
+            const res = await fetch(`${API_BASE_URL}/admin/potential-investors/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
