@@ -193,10 +193,12 @@ const handleGmailCallback = async (req, res) => {
         }
 
         // Redirect back to frontend
-        res.redirect('http://localhost:3000/email-settings?status=success&provider=gmail');
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        res.redirect(`${frontendUrl}/email-settings?status=success&provider=gmail`);
     } catch (error) {
         console.error('Error retrieving access token', error);
-        res.redirect('http://localhost:3000/email-settings?status=error');
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        res.redirect(`${frontendUrl}/email-settings?status=error`);
     }
 };
 
@@ -275,10 +277,12 @@ const handleOutlookCallback = async (req, res) => {
             await user.save();
         }
 
-        res.redirect('http://localhost:3000/email-settings?status=success&provider=outlook');
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        res.redirect(`${frontendUrl}/email-settings?status=success&provider=outlook`);
     } catch (error) {
         console.error('Error retrieving Outlook token', error);
-        res.redirect('http://localhost:3000/email-settings?status=error');
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        res.redirect(`${frontendUrl}/email-settings?status=error`);
     }
 };
 
