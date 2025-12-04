@@ -64,7 +64,9 @@ export function AdminSidebar() {
         if (href === "/admin") {
             return pathname === href;
         }
-        return pathname.startsWith(href);
+        // Check for exact match or if it's a sub-path (e.g., /admin/users/123 starts with /admin/users)
+        // But prevent /admin/investor-processing from matching /admin/investor-processing-v2
+        return pathname === href || pathname.startsWith(`${href}/`);
     };
 
     return (
