@@ -25,17 +25,36 @@ const InvestorProcessingPage = () => {
     const [investors, setInvestors] = useState<PotentialInvestor[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [fromSerial, setFromSerial] = useState('');
+    const [toSerial, setToSerial] = useState('');
     const [selectedInvestor, setSelectedInvestor] = useState<PotentialInvestor | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isAdvancing, setIsAdvancing] = useState(false);
     const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, pages: 1 });
+
+    // Load saved filter values on mount
+    useEffect(() => {
+        const savedFrom = localStorage.getItem('investorProcessing_fromSerial');
+        const savedTo = localStorage.getItem('investorProcessing_toSerial');
+        if (savedFrom) setFromSerial(savedFrom);
+        if (savedTo) setToSerial(savedTo);
+    }, []);
+
+    // Save filter values when they change
+    useEffect(() => {
+        localStorage.setItem('investorProcessing_fromSerial', fromSerial);
+    }, [fromSerial]);
+
+    useEffect(() => {
+        localStorage.setItem('investorProcessing_toSerial', toSerial);
+    }, [toSerial]);
 
     const fetchInvestors = async (status?: InvestorStatus) => {
         try {
             setLoading(true);
             const token = localStorage.getItem('authToken');
             const currentStatus = status || activeTab;
-            const res = await fetch(`${API_BASE_URL}/admin/potential-investors?page=${pagination.page}&limit=${pagination.limit}&search=${searchQuery}&status=${currentStatus}`, {
+            const res = await fetch(`${API_BASE_URL}/admin/potential-investors?page=${pagination.page}&limit=${pagination.limit}&search=${searchQuery}&status=${currentStatus}&fromSerial=${fromSerial}&toSerial=${toSerial}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -57,7 +76,7 @@ const InvestorProcessingPage = () => {
 
     useEffect(() => {
         fetchInvestors();
-    }, [pagination.page, searchQuery, activeTab]);
+    }, [pagination.page, searchQuery, activeTab]); // Removed fromSerial and toSerial from dependency array to only trigger on "Go"
 
     const handleTabChange = (status: InvestorStatus) => {
         setActiveTab(status);
@@ -68,6 +87,11 @@ const InvestorProcessingPage = () => {
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
         setPagination(prev => ({ ...prev, page: 1 }));
+    };
+
+    const handleFilterGo = () => {
+        setPagination(prev => ({ ...prev, page: 1 }));
+        fetchInvestors();
     };
 
     const handleView = (investor: PotentialInvestor) => {
@@ -224,9 +248,9 @@ const InvestorProcessingPage = () => {
                     </nav>
                 </div>
 
-                {/* Search */}
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="relative flex-1">
+                {/* Search and Filters */}
+                <div className="flex flex-col sm:flex-row gap-4 items-end">
+                    <div className="relative flex-1 w-full">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                             type="text"
@@ -235,6 +259,36 @@ const InvestorProcessingPage = () => {
                             onChange={handleSearch}
                             className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                         />
+                    </div>
+
+                    {/* Serial Number Filter */}
+                    <div className="flex items-center gap-2">
+                        <div className="flex flex-col gap-1">
+                            <span className="text-xs text-gray-500 font-medium ml-1">From</span>
+                            <input
+                                type="text"
+                                placeholder="AA0000"
+                                value={fromSerial}
+                                onChange={(e) => setFromSerial(e.target.value)}
+                                className="w-24 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <span className="text-xs text-gray-500 font-medium ml-1">To</span>
+                            <input
+                                type="text"
+                                placeholder="AA9999"
+                                value={toSerial}
+                                onChange={(e) => setToSerial(e.target.value)}
+                                className="w-24 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
+                            />
+                        </div>
+                        <button
+                            onClick={handleFilterGo}
+                            className="mb-[1px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+                        >
+                            Go
+                        </button>
                     </div>
                 </div>
 

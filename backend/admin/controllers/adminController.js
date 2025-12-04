@@ -10,7 +10,7 @@ const PotentialInvestor = require('../models/PotentialInvestor');
  */
 const getPotentialInvestors = async (req, res) => {
     try {
-        const { page = 1, limit = 50, search = '', status = 'pending' } = req.query;
+        const { page = 1, limit = 50, search = '', status = 'pending', fromSerial = '', toSerial = '' } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
         const query = { status };
@@ -21,6 +21,13 @@ const getPotentialInvestors = async (req, res) => {
                 { lastName: { $regex: search, $options: 'i' } },
                 { email: { $regex: search, $options: 'i' } }
             ];
+        }
+
+        // Add serial number range filter
+        if (fromSerial || toSerial) {
+            query.serialNumber = {};
+            if (fromSerial) query.serialNumber.$gte = fromSerial;
+            if (toSerial) query.serialNumber.$lte = toSerial;
         }
 
         const [investors, total] = await Promise.all([
