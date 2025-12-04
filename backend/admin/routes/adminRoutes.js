@@ -28,13 +28,11 @@ router.get('/system/health', adminController.getSystemHealth);
 // ============================================
 router.get(
     '/users',
-    logAdminActivity('view_users', 'user'),
     userManagementController.getAllUsers
 );
 
 router.get(
     '/users/:id',
-    logAdminActivity('view_user_details', 'user'),
     userManagementController.getUserDetails
 );
 
@@ -55,7 +53,6 @@ router.get(
 // ============================================
 router.get(
     '/subscriptions',
-    logAdminActivity('view_subscriptions', 'subscription'),
     userManagementController.getAllSubscriptions
 );
 
@@ -73,7 +70,6 @@ router.get(
 
 router.get(
     '/revenue/analytics',
-    logAdminActivity('view_revenue_analytics', 'data'),
     userManagementController.getRevenueAnalytics
 );
 
@@ -82,7 +78,6 @@ router.get(
 // ============================================
 router.get(
     '/investors',
-    logAdminActivity('view_investors', 'investor'),
     investorController.getInvestors
 );
 
@@ -144,13 +139,11 @@ router.post(
 // ============================================
 router.get(
     '/potential-investors',
-    logAdminActivity('view_potential_investors', 'potential_investor'),
     adminController.getPotentialInvestors
 );
 
 router.get(
     '/potential-investors/:id',
-    logAdminActivity('view_potential_investor_details', 'potential_investor'),
     adminController.getPotentialInvestorDetails
 );
 
@@ -175,13 +168,11 @@ router.post(
 // ============================================
 router.get(
     '/potential-investors-v2',
-    logAdminActivity('view_potential_investors_v2', 'potential_investor_v2'),
     adminController.getPotentialInvestorsV2
 );
 
 router.get(
     '/potential-investors-v2/:id',
-    logAdminActivity('view_potential_investor_details_v2', 'potential_investor_v2'),
     adminController.getPotentialInvestorDetailsV2
 );
 
