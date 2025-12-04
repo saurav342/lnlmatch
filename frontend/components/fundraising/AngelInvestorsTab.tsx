@@ -232,9 +232,19 @@ export function AngelInvestorsTab() {
                                                                 return;
                                                             }
 
+                                                            const token = localStorage.getItem('authToken');
+                                                            if (!token) {
+                                                                alert("You are not logged in.");
+                                                                return;
+                                                            }
+
                                                             try {
                                                                 // Check if connected
-                                                                const statusRes = await fetch(`${API_BASE_URL}/email/status`);
+                                                                const statusRes = await fetch(`${API_BASE_URL}/email/status`, {
+                                                                    headers: {
+                                                                        'Authorization': `Bearer ${token}`
+                                                                    }
+                                                                });
                                                                 const status = await statusRes.json();
 
                                                                 if (!status.connected) {
@@ -247,7 +257,10 @@ export function AngelInvestorsTab() {
                                                                 // Send email
                                                                 const sendRes = await fetch(`${API_BASE_URL}/email/send`, {
                                                                     method: 'POST',
-                                                                    headers: { 'Content-Type': 'application/json' },
+                                                                    headers: {
+                                                                        'Content-Type': 'application/json',
+                                                                        'Authorization': `Bearer ${token}`
+                                                                    },
                                                                     body: JSON.stringify({
                                                                         to: investor.email,
                                                                         subject: `Intro to ${investor.company}`,
