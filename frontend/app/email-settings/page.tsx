@@ -30,8 +30,13 @@ export default function EmailSettingsPage() {
 
         // Mock connection for others
         try {
+            const token = localStorage.getItem('authToken');
             const response = await fetch(`/api/email/connect/${provider.toLowerCase()}`, {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
             });
             const data = await response.json();
             if (data.success) {
@@ -47,10 +52,15 @@ export default function EmailSettingsPage() {
     useEffect(() => {
         const checkStatus = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/email/status`);
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE_URL}/email/status`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 const data = await response.json();
-                if (data.connected && data.provider === 'Gmail') {
-                    setConnectedProvider('Gmail');
+                if (data.connected) {
+                    setConnectedProvider(data.provider === 'gmail' ? 'Gmail' : data.provider === 'outlook' ? 'Outlook' : 'SMTP');
                 }
             } catch (error) {
                 console.error('Failed to check status:', error);
