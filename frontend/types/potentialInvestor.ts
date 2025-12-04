@@ -1,5 +1,6 @@
 export interface PotentialInvestor {
     _id: string;
+    serialNumber?: string;
     companyName: string;
     website: string;
     companyLinkedinUrl: string;

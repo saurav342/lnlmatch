@@ -49,9 +49,16 @@ const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                            {isEditing ? 'Edit Investor Details' : 'Investor Details'}
-                        </h2>
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                {isEditing ? 'Edit Investor Details' : 'Investor Details'}
+                            </h2>
+                            {investor.serialNumber && (
+                                <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg font-mono text-sm font-semibold">
+                                    {investor.serialNumber}
+                                </span>
+                            )}
+                        </div>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                             Review and process this potential investor
                         </p>

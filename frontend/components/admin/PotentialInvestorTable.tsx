@@ -20,6 +20,7 @@ const PotentialInvestorTable: React.FC<PotentialInvestorTableProps> = ({
             <table className="w-full text-left border-collapse">
                 <thead>
                     <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                        <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Serial No.</th>
                         <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Company</th>
                         <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Contact</th>
                         <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Industry / Stage</th>
@@ -30,13 +31,18 @@ const PotentialInvestorTable: React.FC<PotentialInvestorTableProps> = ({
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {investors.length === 0 ? (
                         <tr>
-                            <td colSpan={5} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                            <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                                 No pending investors found.
                             </td>
                         </tr>
                     ) : (
                         investors.map((investor) => (
                             <tr key={investor._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                <td className="px-6 py-4">
+                                    <div className="font-mono text-sm font-semibold text-blue-600 dark:text-blue-400">
+                                        {investor.serialNumber || '-'}
+                                    </div>
+                                </td>
                                 <td className="px-6 py-4">
                                     <div className="font-medium text-gray-900 dark:text-white">{investor.companyName || 'N/A'}</div>
                                     <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
