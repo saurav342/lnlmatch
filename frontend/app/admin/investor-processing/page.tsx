@@ -6,22 +6,36 @@ import PotentialInvestorTable from '../../../components/admin/PotentialInvestorT
 import PotentialInvestorModal from '../../../components/admin/PotentialInvestorModal';
 import { AdminLayout } from '../../../components/admin/AdminLayout';
 import { SectionHeader } from '../../../components/admin/SectionHeader';
-import { Search, Filter, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+
+type InvestorStatus = 'pending' | 'verified' | 'rejected' | 'approved';
+
+const TABS: { label: string; value: InvestorStatus; color: string }[] = [
+    { label: 'Pending', value: 'pending', color: 'blue' },
+    { label: 'Verified', value: 'verified', color: 'purple' },
+    { label: 'Rejected', value: 'rejected', color: 'red' },
+    { label: 'Approved', value: 'approved', color: 'green' }
+];
+
 const InvestorProcessingPage = () => {
+    const [activeTab, setActiveTab] = useState<InvestorStatus>('pending');
     const [investors, setInvestors] = useState<PotentialInvestor[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedInvestor, setSelectedInvestor] = useState<PotentialInvestor | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isAdvancing, setIsAdvancing] = useState(false);
     const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, pages: 1 });
 
-    const fetchInvestors = async () => {
+    const fetchInvestors = async (status?: InvestorStatus) => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/potential-investors?page=${pagination.page}&limit=${pagination.limit}&search=${searchQuery}`, {
+            const token = localStorage.getItem('authToken');
+            const currentStatus = status || activeTab;
+            const res = await fetch(`${API_BASE_URL}/api/admin/potential-investors?page=${pagination.page}&limit=${pagination.limit}&search=${searchQuery}&status=${currentStatus}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -43,7 +57,13 @@ const InvestorProcessingPage = () => {
 
     useEffect(() => {
         fetchInvestors();
-    }, [pagination.page, searchQuery]);
+    }, [pagination.page, searchQuery, activeTab]);
+
+    const handleTabChange = (status: InvestorStatus) => {
+        setActiveTab(status);
+        setPagination(prev => ({ ...prev, page: 1 }));
+        setSearchQuery('');
+    };
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
@@ -55,10 +75,48 @@ const InvestorProcessingPage = () => {
         setIsModalOpen(true);
     };
 
+    const advanceToNext = async () => {
+        setIsAdvancing(true);
+
+        // Wait 200ms
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Refresh the list
+        await fetchInvestors();
+
+        // Find the next investor in the list
+        if (investors.length > 0) {
+            const currentIndex = investors.findIndex(inv => inv._id === selectedInvestor?._id);
+            let nextInvestor: PotentialInvestor | null = null;
+
+            if (currentIndex >= 0 && currentIndex < investors.length - 1) {
+                // Get next in current list
+                nextInvestor = investors[currentIndex + 1];
+            } else if (investors.length > 0) {
+                // Get first investor from refreshed list
+                nextInvestor = investors[0];
+            }
+
+            if (nextInvestor && nextInvestor._id !== selectedInvestor?._id) {
+                setSelectedInvestor(nextInvestor);
+            } else {
+                // No more investors, close modal
+                setIsModalOpen(false);
+                setSelectedInvestor(null);
+            }
+        } else {
+            // No investors left, close modal
+            setIsModalOpen(false);
+            setSelectedInvestor(null);
+        }
+
+        setIsAdvancing(false);
+    };
+
     const handleApprove = async (id: string) => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/potential-investors/${id}/approve`, {
+            const token = localStorage.getItem('authToken');
+            const res = await fetch(`${API_BASE_URL}/api/admin/potential-investors/${id}/approve`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -67,8 +125,7 @@ const InvestorProcessingPage = () => {
             const data = await res.json();
             if (data.success) {
                 toast.success('Investor approved successfully');
-                setIsModalOpen(false);
-                fetchInvestors();
+                await advanceToNext();
             } else {
                 toast.error(data.message || 'Failed to approve investor');
             }
@@ -79,11 +136,11 @@ const InvestorProcessingPage = () => {
     };
 
     const handleReject = async (id: string) => {
-        if (!confirm('Are you sure you want to reject and delete this investor?')) return;
+        if (!confirm('Are you sure you want to reject this investor?')) return;
 
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/potential-investors/${id}/reject`, {
+            const token = localStorage.getItem('authToken');
+            const res = await fetch(`${API_BASE_URL}/api/admin/potential-investors/${id}/reject`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -92,8 +149,7 @@ const InvestorProcessingPage = () => {
             const data = await res.json();
             if (data.success) {
                 toast.success('Investor rejected successfully');
-                setIsModalOpen(false);
-                fetchInvestors();
+                await advanceToNext();
             } else {
                 toast.error(data.message || 'Failed to reject investor');
             }
@@ -105,8 +161,8 @@ const InvestorProcessingPage = () => {
 
     const handleUpdate = async (id: string, updateData: Partial<PotentialInvestor>) => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/potential-investors/${id}`, {
+            const token = localStorage.getItem('authToken');
+            const res = await fetch(`${API_BASE_URL}/api/admin/potential-investors/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -117,8 +173,7 @@ const InvestorProcessingPage = () => {
             const data = await res.json();
             if (data.success) {
                 toast.success('Investor updated successfully');
-                setSelectedInvestor(data.data); // Update local state for modal
-                fetchInvestors(); // Refresh list
+                await advanceToNext();
             } else {
                 toast.error(data.message || 'Failed to update investor');
             }
@@ -136,7 +191,40 @@ const InvestorProcessingPage = () => {
                     description="Review and approve potential investors from CSV imports"
                 />
 
-                {/* Filters */}
+                {/* Tabs */}
+                <div className="border-b border-gray-200 dark:border-gray-700">
+                    <nav className="-mb-px flex space-x-8">
+                        {TABS.map((tab) => (
+                            <button
+                                key={tab.value}
+                                onClick={() => handleTabChange(tab.value)}
+                                className={`
+                                    whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                                    ${activeTab === tab.value
+                                        ? `border-${tab.color}-500 text-${tab.color}-600 dark:text-${tab.color}-400`
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                                    }
+                                `}
+                                style={{
+                                    borderBottomColor: activeTab === tab.value ?
+                                        (tab.color === 'blue' ? '#3b82f6' :
+                                            tab.color === 'purple' ? '#a855f7' :
+                                                tab.color === 'green' ? '#10b981' : '#ef4444')
+                                        : undefined,
+                                    color: activeTab === tab.value ?
+                                        (tab.color === 'blue' ? '#3b82f6' :
+                                            tab.color === 'purple' ? '#a855f7' :
+                                                tab.color === 'green' ? '#10b981' : '#ef4444')
+                                        : undefined
+                                }}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </nav>
+                </div>
+
+                {/* Search */}
                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -154,6 +242,11 @@ const InvestorProcessingPage = () => {
                 {loading ? (
                     <div className="flex items-center justify-center h-64">
                         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                    </div>
+                ) : investors.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+                        <p className="text-lg font-medium">No {activeTab} investors found</p>
+                        <p className="text-sm mt-2">Try adjusting your search or filters</p>
                     </div>
                 ) : (
                     <>
@@ -190,14 +283,20 @@ const InvestorProcessingPage = () => {
                 )}
 
                 {/* Modal */}
-                <PotentialInvestorModal
-                    investor={selectedInvestor}
-                    isOpen={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    onApprove={handleApprove}
-                    onReject={handleReject}
-                    onUpdate={handleUpdate}
-                />
+                {isModalOpen && (
+                    <PotentialInvestorModal
+                        investor={selectedInvestor}
+                        isOpen={isModalOpen}
+                        isAdvancing={isAdvancing}
+                        onClose={() => {
+                            setIsModalOpen(false);
+                            setSelectedInvestor(null);
+                        }}
+                        onApprove={handleApprove}
+                        onReject={handleReject}
+                        onUpdate={handleUpdate}
+                    />
+                )}
             </div>
         </AdminLayout>
     );

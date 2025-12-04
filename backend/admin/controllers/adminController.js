@@ -10,10 +10,10 @@ const PotentialInvestor = require('../models/PotentialInvestor');
  */
 const getPotentialInvestors = async (req, res) => {
     try {
-        const { page = 1, limit = 50, search = '' } = req.query;
+        const { page = 1, limit = 50, search = '', status = 'pending' } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
-        const query = { status: 'pending' };
+        const query = { status };
         if (search) {
             query.$or = [
                 { companyName: { $regex: search, $options: 'i' } },
@@ -68,9 +68,15 @@ const getPotentialInvestorDetails = async (req, res) => {
  */
 const updatePotentialInvestor = async (req, res) => {
     try {
+        // Automatically set status to 'verified' when updating
+        const updateData = {
+            ...req.body,
+            status: 'verified'
+        };
+
         const investor = await PotentialInvestor.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            updateData,
             { new: true, runValidators: true }
         );
         if (!investor) {
@@ -112,10 +118,11 @@ const approvePotentialInvestor = async (req, res) => {
 
         await newInvestor.save();
 
-        // Delete from PotentialInvestor
-        await PotentialInvestor.findByIdAndDelete(req.params.id);
+        // Update status to approved instead of deleting
+        potentialInvestor.status = 'approved';
+        await potentialInvestor.save();
 
-        res.json({ success: true, message: 'Investor approved and moved to main list', data: newInvestor });
+        res.json({ success: true, message: 'Investor approved and moved to main list', data: newInvestor, potentialInvestor });
     } catch (error) {
         console.error('Approve potential investor error:', error);
         res.status(500).json({ success: false, message: 'Failed to approve investor' });
@@ -127,11 +134,15 @@ const approvePotentialInvestor = async (req, res) => {
  */
 const rejectPotentialInvestor = async (req, res) => {
     try {
-        const investor = await PotentialInvestor.findByIdAndDelete(req.params.id);
+        const investor = await PotentialInvestor.findByIdAndUpdate(
+            req.params.id,
+            { status: 'rejected' },
+            { new: true }
+        );
         if (!investor) {
             return res.status(404).json({ success: false, message: 'Potential investor not found' });
         }
-        res.json({ success: true, message: 'Potential investor rejected and removed' });
+        res.json({ success: true, message: 'Potential investor rejected', data: investor });
     } catch (error) {
         console.error('Reject potential investor error:', error);
         res.status(500).json({ success: false, message: 'Failed to reject investor' });

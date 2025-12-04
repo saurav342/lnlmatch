@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { PotentialInvestor } from '../../types/potentialInvestor';
-import { X, Check, Trash2, ExternalLink, Save } from 'lucide-react';
+import { X, Check, Trash2, ExternalLink, Save, Loader2 } from 'lucide-react';
 
 interface PotentialInvestorModalProps {
     investor: PotentialInvestor | null;
     isOpen: boolean;
+    isAdvancing?: boolean;
     onClose: () => void;
     onApprove: (id: string) => void;
     onReject: (id: string) => void;
@@ -14,6 +15,7 @@ interface PotentialInvestorModalProps {
 const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
     investor,
     isOpen,
+    isAdvancing = false,
     onClose,
     onApprove,
     onReject,
@@ -152,6 +154,16 @@ const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
                         </button>
                     </div>
                 </div>
+
+                {/* Loading Overlay for Auto-Advance */}
+                {isAdvancing && (
+                    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-10 rounded-xl">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg px-6 py-4 shadow-xl flex items-center gap-3">
+                            <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                            <span className="text-gray-900 dark:text-white font-medium">Moving to next investor...</span>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -15,7 +15,7 @@ const potentialInvestorSchema = new mongoose.Schema({
     notes: { type: String, trim: true },
     status: {
         type: String,
-        enum: ['pending', 'approved', 'rejected'],
+        enum: ['pending', 'verified', 'approved', 'rejected'],
         default: 'pending'
     },
     createdAt: { type: Date, default: Date.now }
