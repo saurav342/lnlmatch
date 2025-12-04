@@ -377,30 +377,58 @@ const sendEmail = async (req, res) => {
         let transporter;
 
         if (provider === 'gmail') {
+            console.log(`[SendEmail] Preparing to send via Gmail for user ${user.email}`);
+
+            if (!tokens || !tokens.refresh_token) {
+                console.error('[SendEmail] Missing refresh token for Gmail');
+                return res.status(401).json({ success: false, message: 'Email connection expired (missing refresh token). Please reconnect.' });
+            }
+
             const oAuth2Client = new OAuth2Client(
                 process.env.GMAIL_CLIENT_ID,
                 process.env.GMAIL_CLIENT_SECRET,
                 process.env.GMAIL_REDIRECT_URI
             );
-            oAuth2Client.setCredentials(tokens);
 
-            // Check if token is expired and refresh if needed (simplified)
-            // googleapis handles some of this, but explicit refresh is better.
-            // For now, we rely on the library.
+            // Ensure tokens is a plain object
+            const tokenData = JSON.parse(JSON.stringify(tokens));
+            oAuth2Client.setCredentials(tokenData);
 
-            const accessToken = await oAuth2Client.getAccessToken();
+            // Refresh token if needed and get new access token
+            try {
+                const { token: accessToken, res: tokenRes } = await oAuth2Client.getAccessToken();
 
-            transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    type: 'OAuth2',
-                    user: email,
-                    clientId: process.env.GMAIL_CLIENT_ID,
-                    clientSecret: process.env.GMAIL_CLIENT_SECRET,
-                    refreshToken: tokens.refresh_token,
-                    accessToken: accessToken.token,
-                },
-            });
+                if (accessToken) {
+                    console.log('[SendEmail] Successfully retrieved access token');
+                    // Update tokens in DB if they changed (e.g. refreshed)
+                    // Note: oAuth2Client.credentials might have updated info
+                    if (oAuth2Client.credentials.access_token !== tokenData.access_token) {
+                        console.log('[SendEmail] Tokens refreshed, updating DB');
+                        user.emailSettings.tokens = {
+                            ...tokenData,
+                            ...oAuth2Client.credentials
+                        };
+                        await user.save();
+                    }
+                } else {
+                    console.error('[SendEmail] Failed to retrieve access token (empty)');
+                }
+
+                transporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                        type: 'OAuth2',
+                        user: email,
+                        clientId: process.env.GMAIL_CLIENT_ID,
+                        clientSecret: process.env.GMAIL_CLIENT_SECRET,
+                        refreshToken: tokenData.refresh_token,
+                        accessToken: accessToken,
+                    },
+                });
+            } catch (tokenError) {
+                console.error('[SendEmail] Error refreshing/getting access token:', tokenError);
+                return res.status(401).json({ success: false, message: 'Failed to refresh email connection. Please reconnect your account.' });
+            }
         } else if (provider === 'outlook') {
             // Outlook logic using nodemailer with OAuth2
             // Note: Outlook OAuth with Nodemailer can be tricky.
@@ -472,11 +500,16 @@ const sendEmail = async (req, res) => {
                 subject,
                 text: body,
             });
+            console.log(`[SendEmail] Email sent successfully to ${to}`);
             res.json({ success: true, message: 'Email sent successfully' });
         }
 
     } catch (error) {
         console.error('Error sending email:', error);
+        // Check for specific SMTP auth errors
+        if (error.responseCode === 535) {
+            return res.status(401).json({ success: false, message: 'Email authentication failed. Please reconnect your email account.' });
+        }
         res.status(500).json({ success: false, message: 'Failed to send email: ' + error.message });
     }
 };
