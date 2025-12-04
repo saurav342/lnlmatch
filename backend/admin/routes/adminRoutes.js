@@ -162,13 +162,11 @@ router.put(
 
 router.post(
     '/potential-investors/:id/approve',
-    logAdminActivity('approve_potential_investor', 'potential_investor'),
     adminController.approvePotentialInvestor
 );
 
 router.post(
     '/potential-investors/:id/reject',
-    logAdminActivity('reject_potential_investor', 'potential_investor'),
     adminController.rejectPotentialInvestor
 );
 
@@ -195,13 +193,11 @@ router.put(
 
 router.post(
     '/potential-investors-v2/:id/approve',
-    logAdminActivity('approve_potential_investor_v2', 'potential_investor_v2'),
     adminController.approvePotentialInvestorV2
 );
 
 router.post(
     '/potential-investors-v2/:id/reject',
-    logAdminActivity('reject_potential_investor_v2', 'potential_investor_v2'),
     adminController.rejectPotentialInvestorV2
 );
 module.exports = router;

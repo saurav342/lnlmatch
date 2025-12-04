@@ -59,7 +59,7 @@ export default function LoginPage() {
                 localStorage.setItem('authToken', responseData.token);
                 localStorage.setItem('user', JSON.stringify(responseData.user));
 
-                if (responseData.user.userType === 'admin') {
+                if (responseData.user.userType === 'admin' || responseData.user.userType === 'superadmin') {
                     router.push("/admin");
                 } else {
                     router.push("/dashboard");

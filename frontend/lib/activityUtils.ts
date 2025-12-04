@@ -26,10 +26,12 @@ export function generateActivitySentence(activity: Activity): string {
     switch (action) {
         // Potential Investor Actions
         case 'approve_potential_investor':
+        case 'approve_potential_investor_v2':
             const approvedName = getInvestorName(metadata) || 'an investor';
             return `${adminName} approved ${approvedName}`;
 
         case 'reject_potential_investor':
+        case 'reject_potential_investor_v2':
             const rejectedName = getInvestorName(metadata) || 'an investor';
             return `${adminName} rejected ${rejectedName}`;
 

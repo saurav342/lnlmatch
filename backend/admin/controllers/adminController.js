@@ -130,6 +130,23 @@ const approvePotentialInvestor = async (req, res) => {
         potentialInvestor.status = 'approved';
         await potentialInvestor.save();
 
+        // Log activity manually to capture investor name
+        await AdminActivity.create({
+            adminId: req.user._id,
+            action: 'approve_potential_investor',
+            targetType: 'potential_investor',
+            targetId: potentialInvestor._id,
+            metadata: {
+                body: {
+                    name: `${potentialInvestor.firstName} ${potentialInvestor.lastName}`.trim(),
+                    companyName: potentialInvestor.companyName,
+                    email: potentialInvestor.email
+                }
+            },
+            ipAddress: req.ip || req.connection.remoteAddress,
+            userAgent: req.headers['user-agent']
+        });
+
         res.json({ success: true, message: 'Investor approved and moved to main list', data: newInvestor, potentialInvestor });
     } catch (error) {
         console.error('Approve potential investor error:', error);
@@ -150,6 +167,24 @@ const rejectPotentialInvestor = async (req, res) => {
         if (!investor) {
             return res.status(404).json({ success: false, message: 'Potential investor not found' });
         }
+
+        // Log activity manually
+        await AdminActivity.create({
+            adminId: req.user._id,
+            action: 'reject_potential_investor',
+            targetType: 'potential_investor',
+            targetId: investor._id,
+            metadata: {
+                body: {
+                    name: `${investor.firstName} ${investor.lastName}`.trim(),
+                    companyName: investor.companyName,
+                    email: investor.email
+                }
+            },
+            ipAddress: req.ip || req.connection.remoteAddress,
+            userAgent: req.headers['user-agent']
+        });
+
         res.json({ success: true, message: 'Potential investor rejected', data: investor });
     } catch (error) {
         console.error('Reject potential investor error:', error);
@@ -498,6 +533,23 @@ const approvePotentialInvestorV2 = async (req, res) => {
         potentialInvestor.status = 'approved';
         await potentialInvestor.save();
 
+        // Log activity manually
+        await AdminActivity.create({
+            adminId: req.user._id,
+            action: 'approve_potential_investor_v2',
+            targetType: 'potential_investor_v2',
+            targetId: potentialInvestor._id,
+            metadata: {
+                body: {
+                    name: `${potentialInvestor.firstName} ${potentialInvestor.lastName}`.trim(),
+                    companyName: potentialInvestor.companyName,
+                    email: potentialInvestor.email
+                }
+            },
+            ipAddress: req.ip || req.connection.remoteAddress,
+            userAgent: req.headers['user-agent']
+        });
+
         res.json({ success: true, message: 'Investor approved and moved to main list', data: newInvestor, potentialInvestor });
     } catch (error) {
         console.error('Approve potential investor V2 error:', error);
@@ -518,6 +570,24 @@ const rejectPotentialInvestorV2 = async (req, res) => {
         if (!investor) {
             return res.status(404).json({ success: false, message: 'Potential investor V2 not found' });
         }
+
+        // Log activity manually
+        await AdminActivity.create({
+            adminId: req.user._id,
+            action: 'reject_potential_investor_v2',
+            targetType: 'potential_investor_v2',
+            targetId: investor._id,
+            metadata: {
+                body: {
+                    name: `${investor.firstName} ${investor.lastName}`.trim(),
+                    companyName: investor.companyName,
+                    email: investor.email
+                }
+            },
+            ipAddress: req.ip || req.connection.remoteAddress,
+            userAgent: req.headers['user-agent']
+        });
+
         res.json({ success: true, message: 'Potential investor V2 rejected', data: investor });
     } catch (error) {
         console.error('Reject potential investor V2 error:', error);
