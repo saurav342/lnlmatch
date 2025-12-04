@@ -31,6 +31,7 @@ const InvestorProcessingPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isAdvancing, setIsAdvancing] = useState(false);
     const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, pages: 1 });
+    const [isInitialized, setIsInitialized] = useState(false);
 
     // Load saved filter values on mount
     useEffect(() => {
@@ -38,16 +39,21 @@ const InvestorProcessingPage = () => {
         const savedTo = localStorage.getItem('investorProcessing_toSerial');
         if (savedFrom) setFromSerial(savedFrom);
         if (savedTo) setToSerial(savedTo);
+        setIsInitialized(true);
     }, []);
 
     // Save filter values when they change
     useEffect(() => {
-        localStorage.setItem('investorProcessing_fromSerial', fromSerial);
-    }, [fromSerial]);
+        if (isInitialized) {
+            localStorage.setItem('investorProcessing_fromSerial', fromSerial);
+        }
+    }, [fromSerial, isInitialized]);
 
     useEffect(() => {
-        localStorage.setItem('investorProcessing_toSerial', toSerial);
-    }, [toSerial]);
+        if (isInitialized) {
+            localStorage.setItem('investorProcessing_toSerial', toSerial);
+        }
+    }, [toSerial, isInitialized]);
 
     const fetchInvestors = async (status?: InvestorStatus) => {
         try {
@@ -75,8 +81,10 @@ const InvestorProcessingPage = () => {
     };
 
     useEffect(() => {
-        fetchInvestors();
-    }, [pagination.page, searchQuery, activeTab]); // Removed fromSerial and toSerial from dependency array to only trigger on "Go"
+        if (isInitialized) {
+            fetchInvestors();
+        }
+    }, [pagination.page, searchQuery, activeTab, isInitialized]); // Removed fromSerial and toSerial from dependency array to only trigger on "Go"
 
     const handleTabChange = (status: InvestorStatus) => {
         setActiveTab(status);
