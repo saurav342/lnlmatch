@@ -123,16 +123,20 @@ const initiateGmailAuth = (req, res) => {
     );
 
     // Get user ID from token to ensure we update the correct user on callback
-    let state = 'dev-user';
+    let state;
     const authHeader = req.headers.authorization;
-    if (authHeader) {
-        try {
-            const token = authHeader.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
-            state = decoded.id;
-        } catch (e) {
-            console.error('Error decoding token for Gmail auth state:', e);
-        }
+
+    if (!authHeader) {
+        return res.status(401).json({ success: false, message: 'Unauthorized: No token provided' });
+    }
+
+    try {
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+        state = decoded.id;
+    } catch (e) {
+        console.error('Error decoding token for Gmail auth state:', e);
+        return res.status(401).json({ success: false, message: 'Unauthorized: Invalid token' });
     }
 
     const authorizeUrl = oAuth2Client.generateAuthUrl({
@@ -150,6 +154,7 @@ const initiateGmailAuth = (req, res) => {
 
 const handleGmailCallback = async (req, res) => {
     const { code, state } = req.query;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
     try {
         const oAuth2Client = new OAuth2Client(
@@ -169,37 +174,32 @@ const handleGmailCallback = async (req, res) => {
         const payload = ticket.getPayload();
         const gmailEmail = payload.email;
 
-        // Find the user to update. 
-        // In a real app, we'd use the 'state' param to find the user ID.
-        // Here, we'll try to find a user by the email if it matches, OR just update the first admin user found for dev purposes if state is generic.
-        // Better approach: We'll update the user who has this email address in our system, OR if not found, we might need to rely on a fixed user for this demo.
-        // Let's assume we are updating the "admin" user or the user specified in state.
-
-        let user;
-        if (state && state !== 'dev-user') {
-            user = await User.findById(state);
-        } else {
-            // Fallback: Update the first admin user found
-            user = await User.findOne({ userType: { $in: ['admin', 'superadmin'] } });
+        // Find the user to update using the state (user ID)
+        if (!state) {
+            console.error('No state returned from Google');
+            return res.redirect(`${frontendUrl}/email-settings?status=error&message=no_state`);
         }
 
-        if (user) {
-            user.emailSettings = {
-                provider: 'gmail',
-                email: gmailEmail,
-                tokens: tokens,
-                connectedAt: new Date()
-            };
-            await user.save();
+        const user = await User.findById(state);
+
+        if (!user) {
+            console.error(`User not found for ID: ${state}`);
+            return res.redirect(`${frontendUrl}/email-settings?status=error&message=user_not_found`);
         }
+
+        user.emailSettings = {
+            provider: 'gmail',
+            email: gmailEmail,
+            tokens: tokens,
+            connectedAt: new Date()
+        };
+        await user.save();
 
         // Redirect back to frontend
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
         res.redirect(`${frontendUrl}/email-settings?status=success&provider=gmail`);
     } catch (error) {
         console.error('Error retrieving access token', error);
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-        res.redirect(`${frontendUrl}/email-settings?status=error`);
+        res.redirect(`${frontendUrl}/email-settings?status=error&message=${encodeURIComponent(error.message)}`);
     }
 };
 
