@@ -15,7 +15,7 @@ import {
     ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const navigation = [
     { name: "Overview", href: "/admin", icon: LayoutDashboard },
@@ -34,10 +34,9 @@ export function AdminSidebar() {
     const [userRole, setUserRole] = useState<string>('admin');
 
     // Get user role from localStorage on mount
-    useState(() => {
+    useEffect(() => {
         if (typeof window !== 'undefined') {
             // Try to get user info from localStorage
-            const token = localStorage.getItem('authToken');
             const userStr = localStorage.getItem('user');
 
             if (userStr) {
@@ -49,7 +48,7 @@ export function AdminSidebar() {
                 }
             }
         }
-    });
+    }, []);
 
     // Filter navigation items based on role
     const filteredNavigation = navigation.filter(item => {
