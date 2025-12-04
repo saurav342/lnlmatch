@@ -4,6 +4,7 @@ const Subscription = require('../models/Subscription');
 const Investor = require('../models/Investor');
 const AdminActivity = require('../models/AdminActivity');
 const PotentialInvestor = require('../models/PotentialInvestor');
+const PotentialInvestorV2 = require('../models/PotentialInvestorV2');
 
 /**
  * Get potential investors with pagination
@@ -373,6 +374,157 @@ const getSystemHealth = async (req, res) => {
     }
 };
 
+/**
+ * Get potential investors V2 with pagination
+ */
+const getPotentialInvestorsV2 = async (req, res) => {
+    try {
+        const { page = 1, limit = 50, search = '', status = 'pending', fromSerial = '', toSerial = '' } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        const query = { status };
+        if (search) {
+            query.$or = [
+                { companyName: { $regex: search, $options: 'i' } },
+                { firstName: { $regex: search, $options: 'i' } },
+                { lastName: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Add serial number range filter
+        if (fromSerial || toSerial) {
+            query.serialNumber = {};
+            if (fromSerial) query.serialNumber.$gte = fromSerial;
+            if (toSerial) query.serialNumber.$lte = toSerial;
+        }
+
+        const [investors, total] = await Promise.all([
+            PotentialInvestorV2.find(query)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(parseInt(limit)),
+            PotentialInvestorV2.countDocuments(query)
+        ]);
+
+        res.json({
+            success: true,
+            data: investors,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / parseInt(limit))
+            }
+        });
+    } catch (error) {
+        console.error('Get potential investors V2 error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch potential investors V2' });
+    }
+};
+
+/**
+ * Get potential investor details V2
+ */
+const getPotentialInvestorDetailsV2 = async (req, res) => {
+    try {
+        const investor = await PotentialInvestorV2.findById(req.params.id);
+        if (!investor) {
+            return res.status(404).json({ success: false, message: 'Potential investor V2 not found' });
+        }
+        res.json({ success: true, data: investor });
+    } catch (error) {
+        console.error('Get potential investor details V2 error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch details' });
+    }
+};
+
+/**
+ * Update potential investor V2
+ */
+const updatePotentialInvestorV2 = async (req, res) => {
+    try {
+        // Automatically set status to 'verified' when updating
+        const updateData = {
+            ...req.body,
+            status: 'verified'
+        };
+
+        const investor = await PotentialInvestorV2.findByIdAndUpdate(
+            req.params.id,
+            updateData,
+            { new: true, runValidators: true }
+        );
+        if (!investor) {
+            return res.status(404).json({ success: false, message: 'Potential investor V2 not found' });
+        }
+        res.json({ success: true, data: investor });
+    } catch (error) {
+        console.error('Update potential investor V2 error:', error);
+        res.status(500).json({ success: false, message: 'Failed to update potential investor V2' });
+    }
+};
+
+/**
+ * Approve potential investor V2
+ */
+const approvePotentialInvestorV2 = async (req, res) => {
+    try {
+        const potentialInvestor = await PotentialInvestorV2.findById(req.params.id);
+        if (!potentialInvestor) {
+            return res.status(404).json({ success: false, message: 'Potential investor V2 not found' });
+        }
+
+        // Map to Investor model
+        const newInvestor = new Investor({
+            name: `${potentialInvestor.firstName} ${potentialInvestor.lastName}`.trim(),
+            email: potentialInvestor.email,
+            company: potentialInvestor.companyName,
+            websiteUrl: potentialInvestor.website,
+            linkedinUrl: potentialInvestor.personLinkedinUrl,
+            notes: potentialInvestor.notes,
+            type: 'Institutional', // Defaulting to Institutional
+            source: 'excel-import-v2',
+            isActive: true,
+            isVerified: true,
+            // Map other fields as best as possible
+            industries: potentialInvestor.industry ? [potentialInvestor.industry] : [],
+            investmentStage: potentialInvestor.stageOfInvestment ? potentialInvestor.stageOfInvestment.split(',').map(s => s.trim()) : []
+        });
+
+        await newInvestor.save();
+
+        // Update status to approved instead of deleting
+        potentialInvestor.status = 'approved';
+        await potentialInvestor.save();
+
+        res.json({ success: true, message: 'Investor approved and moved to main list', data: newInvestor, potentialInvestor });
+    } catch (error) {
+        console.error('Approve potential investor V2 error:', error);
+        res.status(500).json({ success: false, message: 'Failed to approve investor' });
+    }
+};
+
+/**
+ * Reject potential investor V2
+ */
+const rejectPotentialInvestorV2 = async (req, res) => {
+    try {
+        const investor = await PotentialInvestorV2.findByIdAndUpdate(
+            req.params.id,
+            { status: 'rejected' },
+            { new: true }
+        );
+        if (!investor) {
+            return res.status(404).json({ success: false, message: 'Potential investor V2 not found' });
+        }
+        res.json({ success: true, message: 'Potential investor V2 rejected', data: investor });
+    } catch (error) {
+        console.error('Reject potential investor V2 error:', error);
+        res.status(500).json({ success: false, message: 'Failed to reject investor' });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getActivityLog,
@@ -381,5 +533,10 @@ module.exports = {
     getPotentialInvestorDetails,
     updatePotentialInvestor,
     approvePotentialInvestor,
-    rejectPotentialInvestor
+    rejectPotentialInvestor,
+    getPotentialInvestorsV2,
+    getPotentialInvestorDetailsV2,
+    updatePotentialInvestorV2,
+    approvePotentialInvestorV2,
+    rejectPotentialInvestorV2
 };

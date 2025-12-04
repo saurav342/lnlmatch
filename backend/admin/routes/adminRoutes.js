@@ -172,4 +172,36 @@ router.post(
     adminController.rejectPotentialInvestor
 );
 
+// ============================================
+// Potential Investor Processing V2 Routes
+// ============================================
+router.get(
+    '/potential-investors-v2',
+    logAdminActivity('view_potential_investors_v2', 'potential_investor_v2'),
+    adminController.getPotentialInvestorsV2
+);
+
+router.get(
+    '/potential-investors-v2/:id',
+    logAdminActivity('view_potential_investor_details_v2', 'potential_investor_v2'),
+    adminController.getPotentialInvestorDetailsV2
+);
+
+router.put(
+    '/potential-investors-v2/:id',
+    logAdminActivity('update_potential_investor_v2', 'potential_investor_v2'),
+    adminController.updatePotentialInvestorV2
+);
+
+router.post(
+    '/potential-investors-v2/:id/approve',
+    logAdminActivity('approve_potential_investor_v2', 'potential_investor_v2'),
+    adminController.approvePotentialInvestorV2
+);
+
+router.post(
+    '/potential-investors-v2/:id/reject',
+    logAdminActivity('reject_potential_investor_v2', 'potential_investor_v2'),
+    adminController.rejectPotentialInvestorV2
+);
 module.exports = router;
