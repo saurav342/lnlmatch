@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PotentialInvestor } from '../../types/potentialInvestor';
-import { X, Check, Trash2, ExternalLink, Save, Loader2 } from 'lucide-react';
+import { X, Check, Trash2, ExternalLink, Save, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PotentialInvestorModalProps {
     investor: PotentialInvestor | null;
@@ -10,6 +10,10 @@ interface PotentialInvestorModalProps {
     onApprove: (id: string) => void;
     onReject: (id: string) => void;
     onUpdate: (id: string, data: Partial<PotentialInvestor>) => void;
+    onNext?: () => void;
+    onPrevious?: () => void;
+    hasNext?: boolean;
+    hasPrevious?: boolean;
 }
 
 const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
@@ -19,7 +23,11 @@ const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
     onClose,
     onApprove,
     onReject,
-    onUpdate
+    onUpdate,
+    onNext,
+    onPrevious,
+    hasNext = false,
+    hasPrevious = false
 }) => {
     const [formData, setFormData] = useState<Partial<PotentialInvestor>>({});
     const [isEditing, setIsEditing] = useState(false);
@@ -63,12 +71,39 @@ const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
                             Review and process this potential investor
                         </p>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-                    >
-                        <X className="w-6 h-6 text-gray-500" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1 mr-2">
+                            <button
+                                onClick={onPrevious}
+                                disabled={!hasPrevious}
+                                className={`p-1 rounded-md transition-colors ${hasPrevious
+                                        ? 'hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 shadow-sm'
+                                        : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                                    }`}
+                                title="Previous Investor"
+                            >
+                                <ChevronLeft className="w-5 h-5" />
+                            </button>
+                            <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1" />
+                            <button
+                                onClick={onNext}
+                                disabled={!hasNext}
+                                className={`p-1 rounded-md transition-colors ${hasNext
+                                        ? 'hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 shadow-sm'
+                                        : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                                    }`}
+                                title="Next Investor"
+                            >
+                                <ChevronRight className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                        >
+                            <X className="w-6 h-6 text-gray-500" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Content */}

@@ -145,6 +145,22 @@ const InvestorProcessingV2Page = () => {
         setIsAdvancing(false);
     };
 
+    const handleNext = () => {
+        if (!selectedInvestor || investors.length === 0) return;
+        const currentIndex = investors.findIndex(inv => inv._id === selectedInvestor._id);
+        if (currentIndex >= 0 && currentIndex < investors.length - 1) {
+            setSelectedInvestor(investors[currentIndex + 1]);
+        }
+    };
+
+    const handlePrevious = () => {
+        if (!selectedInvestor || investors.length === 0) return;
+        const currentIndex = investors.findIndex(inv => inv._id === selectedInvestor._id);
+        if (currentIndex > 0) {
+            setSelectedInvestor(investors[currentIndex - 1]);
+        }
+    };
+
     const handleApprove = async (id: string) => {
         try {
             const token = localStorage.getItem('authToken');
@@ -368,6 +384,10 @@ const InvestorProcessingV2Page = () => {
                         onApprove={handleApprove}
                         onReject={handleReject}
                         onUpdate={handleUpdate}
+                        onNext={handleNext}
+                        onPrevious={handlePrevious}
+                        hasNext={!!selectedInvestor && investors.findIndex(inv => inv._id === selectedInvestor._id) < investors.length - 1}
+                        hasPrevious={!!selectedInvestor && investors.findIndex(inv => inv._id === selectedInvestor._id) > 0}
                     />
                 )}
             </div>
