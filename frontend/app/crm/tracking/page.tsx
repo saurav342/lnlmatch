@@ -22,13 +22,16 @@ import { fetchCampaigns } from "@/lib/api";
 
 export default function TrackingPage() {
     const [campaigns, setCampaigns] = useState<any[]>([]);
+    const [filteredCampaigns, setFilteredCampaigns] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
         async function loadCampaigns() {
             try {
                 const data = await fetchCampaigns();
                 setCampaigns(data);
+                setFilteredCampaigns(data);
             } catch (error) {
                 console.error("Failed to load campaigns", error);
             } finally {
@@ -37,6 +40,16 @@ export default function TrackingPage() {
         }
         loadCampaigns();
     }, []);
+
+    useEffect(() => {
+        const lowerQuery = searchQuery.toLowerCase();
+        const filtered = campaigns.filter(campaign =>
+            campaign.investor.toLowerCase().includes(lowerQuery) ||
+            campaign.subject.toLowerCase().includes(lowerQuery) ||
+            campaign.contact.toLowerCase().includes(lowerQuery)
+        );
+        setFilteredCampaigns(filtered);
+    }, [searchQuery, campaigns]);
 
     if (loading) {
         return (
@@ -64,6 +77,8 @@ export default function TrackingPage() {
                             <Input
                                 placeholder="Search campaigns..."
                                 className="pl-9"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
                         <div className="flex items-center gap-2">
@@ -92,50 +107,58 @@ export default function TrackingPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {campaigns.map((campaign) => (
-                                    <TableRow key={campaign.id}>
-                                        <TableCell className="font-medium">
-                                            {campaign.investor}
-                                        </TableCell>
-                                        <TableCell>{campaign.contact}</TableCell>
-                                        <TableCell>{campaign.subject}</TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                variant={
-                                                    campaign.status === "Replied"
-                                                        ? "default" // Using default (primary) for positive
-                                                        : campaign.status === "Opened"
-                                                            ? "secondary"
-                                                            : campaign.status === "Bounced"
-                                                                ? "destructive"
-                                                                : "outline"
-                                                }
-                                                className={
-                                                    campaign.status === "Replied"
-                                                        ? "bg-green-500 hover:bg-green-600"
-                                                        : campaign.status === "Opened"
-                                                            ? "bg-blue-500 text-white hover:bg-blue-600"
-                                                            : ""
-                                                }
-                                            >
-                                                {campaign.status}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>{campaign.sentAt}</TableCell>
-                                        <TableCell>
-                                            {campaign.openedAt || "-"}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8"
-                                            >
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
+                                {filteredCampaigns.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={7} className="h-24 text-center">
+                                            No campaigns found.
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                ) : (
+                                    filteredCampaigns.map((campaign) => (
+                                        <TableRow key={campaign.id}>
+                                            <TableCell className="font-medium">
+                                                {campaign.investor}
+                                            </TableCell>
+                                            <TableCell>{campaign.contact}</TableCell>
+                                            <TableCell>{campaign.subject}</TableCell>
+                                            <TableCell>
+                                                <Badge
+                                                    variant={
+                                                        campaign.status === "Replied"
+                                                            ? "default"
+                                                            : campaign.status === "Opened"
+                                                                ? "secondary"
+                                                                : campaign.status === "Bounced"
+                                                                    ? "destructive"
+                                                                    : "outline"
+                                                    }
+                                                    className={
+                                                        campaign.status === "Replied"
+                                                            ? "bg-green-500 hover:bg-green-600"
+                                                            : campaign.status === "Opened"
+                                                                ? "bg-blue-500 text-white hover:bg-blue-600"
+                                                                : ""
+                                                    }
+                                                >
+                                                    {campaign.status}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>{campaign.sentAt}</TableCell>
+                                            <TableCell>
+                                                {campaign.openedAt || "-"}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8"
+                                                >
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
                             </TableBody>
                         </Table>
                     </div>

@@ -10,6 +10,7 @@ const {
     initiateGmailAuth,
     handleGmailCallback,
     getEmailStatus,
+    trackEmailOpen,
 } = require('../controllers/mainController');
 
 router.get('/dashboard/stats', getDashboardStats);
@@ -38,5 +39,6 @@ router.post('/email/connect/outlook', (req, res) => {
 router.post('/email/connect/smtp', require('../controllers/mainController').saveSmtpSettings);
 router.get('/email/status', getEmailStatus);
 router.post('/email/send', require('../controllers/mainController').sendEmail);
+router.get('/email/track/:id', trackEmailOpen);
 
 module.exports = router;

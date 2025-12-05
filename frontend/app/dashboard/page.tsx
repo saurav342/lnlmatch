@@ -67,6 +67,55 @@ export default function DashboardPage() {
                     </p>
                 </div>
 
+                {/* Action Center */}
+                <div className="grid gap-6 md:grid-cols-2">
+                    <Card className="group relative overflow-hidden border-border/50 hover:shadow-xl transition-all duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="p-8 relative">
+                            <div className="flex items-start justify-between mb-6">
+                                <div>
+                                    <h3 className="text-xl font-bold mb-2">Find Investors</h3>
+                                    <p className="text-muted-foreground">
+                                        Browse angel investors and VCs that match your startup
+                                    </p>
+                                </div>
+                                <div className="rounded-2xl bg-orange-100 p-3 dark:bg-orange-900/20 group-hover:scale-110 transition-transform">
+                                    <Users className="h-8 w-8 text-orange-600" />
+                                </div>
+                            </div>
+                            <Link href="/discovery/angels">
+                                <Button variant="outline" className="w-full justify-between h-12 text-base hover:border-orange-500/50 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/30">
+                                    Browse Investors
+                                    <ArrowRight className="h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </div>
+                    </Card>
+
+                    <Card className="group relative overflow-hidden border-border/50 hover:shadow-xl transition-all duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="p-8 relative">
+                            <div className="flex items-start justify-between mb-6">
+                                <div>
+                                    <h3 className="text-xl font-bold mb-2">Start Outreach</h3>
+                                    <p className="text-muted-foreground">
+                                        Connect with investors through personalized campaigns
+                                    </p>
+                                </div>
+                                <div className="rounded-2xl bg-blue-100 p-3 dark:bg-blue-900/20 group-hover:scale-110 transition-transform">
+                                    <Mail className="h-8 w-8 text-blue-600" />
+                                </div>
+                            </div>
+                            <Link href="/crm/inbox">
+                                <Button variant="outline" className="w-full justify-between h-12 text-base hover:border-blue-500/50 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30">
+                                    Go to CRM
+                                    <ArrowRight className="h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </div>
+                    </Card>
+                </div>
+
                 {/* Bento Grid */}
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {/* Hero Stat - Potential Matches (Spans 2 columns) */}
@@ -177,54 +226,7 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* Action Center */}
-                <div className="grid gap-6 md:grid-cols-2">
-                    <Card className="group relative overflow-hidden border-border/50 hover:shadow-xl transition-all duration-300">
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="p-8 relative">
-                            <div className="flex items-start justify-between mb-6">
-                                <div>
-                                    <h3 className="text-xl font-bold mb-2">Find Investors</h3>
-                                    <p className="text-muted-foreground">
-                                        Browse angel investors and VCs that match your startup
-                                    </p>
-                                </div>
-                                <div className="rounded-2xl bg-orange-100 p-3 dark:bg-orange-900/20 group-hover:scale-110 transition-transform">
-                                    <Users className="h-8 w-8 text-orange-600" />
-                                </div>
-                            </div>
-                            <Link href="/discovery/angels">
-                                <Button variant="outline" className="w-full justify-between h-12 text-base hover:border-orange-500/50 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/30">
-                                    Browse Investors
-                                    <ArrowRight className="h-4 w-4" />
-                                </Button>
-                            </Link>
-                        </div>
-                    </Card>
 
-                    <Card className="group relative overflow-hidden border-border/50 hover:shadow-xl transition-all duration-300">
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="p-8 relative">
-                            <div className="flex items-start justify-between mb-6">
-                                <div>
-                                    <h3 className="text-xl font-bold mb-2">Start Outreach</h3>
-                                    <p className="text-muted-foreground">
-                                        Connect with investors through personalized campaigns
-                                    </p>
-                                </div>
-                                <div className="rounded-2xl bg-blue-100 p-3 dark:bg-blue-900/20 group-hover:scale-110 transition-transform">
-                                    <Mail className="h-8 w-8 text-blue-600" />
-                                </div>
-                            </div>
-                            <Link href="/crm/inbox">
-                                <Button variant="outline" className="w-full justify-between h-12 text-base hover:border-blue-500/50 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30">
-                                    Go to CRM
-                                    <ArrowRight className="h-4 w-4" />
-                                </Button>
-                            </Link>
-                        </div>
-                    </Card>
-                </div>
             </div>
         </DashboardLayout>
     );

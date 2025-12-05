@@ -1,6 +1,7 @@
 // backend/controllers/mainController.js
 const User = require('../admin/models/User');
 const Investor = require('../admin/models/Investor');
+const EmailLog = require('../admin/models/EmailLog');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
@@ -70,9 +71,35 @@ const getGrants = (req, res) => {
     res.json([]);
 };
 
-const getCampaigns = (req, res) => {
-    // Return empty campaigns array instead of mock data
-    res.json([]);
+const getCampaigns = async (req, res) => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+
+        // Fetch logs for this user
+        const logs = await EmailLog.find({ userId: decoded.id })
+            .populate('investorId', 'name company')
+            .sort({ sentAt: -1 });
+
+        const campaigns = logs.map(log => ({
+            id: log._id,
+            investor: log.investorId ? log.investorId.name : (log.recipient || 'Unknown'),
+            contact: log.recipient,
+            subject: log.subject,
+            status: log.status,
+            sentAt: new Date(log.sentAt).toLocaleDateString(),
+            openedAt: log.openedAt ? new Date(log.openedAt).toLocaleDateString() : null
+        }));
+
+        res.json(campaigns);
+    } catch (error) {
+        console.error('Error fetching campaigns:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch campaigns' });
+    }
 };
 
 const getUserProfile = async (req, res) => {
@@ -358,6 +385,36 @@ const getEmailStatus = async (req, res) => {
     }
 };
 
+const trackEmailOpen = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const emailLog = await EmailLog.findById(id);
+        if (emailLog && emailLog.status !== 'Opened') {
+            emailLog.status = 'Opened';
+            emailLog.openedAt = new Date();
+            await emailLog.save();
+        }
+
+        // Return a 1x1 transparent GIF
+        const img = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
+        res.writeHead(200, {
+            'Content-Type': 'image/gif',
+            'Content-Length': img.length,
+        });
+        res.end(img);
+    } catch (error) {
+        console.error('Error tracking email open:', error);
+        // Still return the image to avoid broken image icon in email
+        const img = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
+        res.writeHead(200, {
+            'Content-Type': 'image/gif',
+            'Content-Length': img.length,
+        });
+        res.end(img);
+    }
+};
+
 const sendEmail = async (req, res) => {
     const { to, subject, body } = req.body;
     const authHeader = req.headers.authorization;
@@ -379,6 +436,31 @@ const sendEmail = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Email address not found in settings. Please reconnect your account.' });
         }
 
+        // Create initial log entry to get ID
+        let emailLog;
+        try {
+            const investor = await Investor.findOne({ email: to });
+            emailLog = await EmailLog.create({
+                userId: user._id,
+                investorId: investor ? investor._id : null,
+                recipient: to,
+                subject,
+                body, // Store original body
+                status: 'Sent',
+                provider: provider,
+                sentAt: new Date()
+            });
+        } catch (logError) {
+            console.error('Error creating initial email log:', logError);
+            // If we can't log, we probably shouldn't fail the send, but tracking won't work
+        }
+
+        // Prepare HTML body with tracking pixel
+        const trackingUrl = `${process.env.API_BASE_URL || 'http://localhost:5001/api'}/email/track/${emailLog ? emailLog._id : 'unknown'}`;
+        const trackingPixel = `<img src="${trackingUrl}" width="1" height="1" style="display:none;" alt="" />`;
+        // Convert newlines to <br> for HTML email if body is plain text
+        const htmlBody = body.replace(/\n/g, '<br>') + trackingPixel;
+
         if (provider === 'gmail') {
             try {
                 const oAuth2Client = new OAuth2Client(
@@ -397,11 +479,11 @@ const sendEmail = async (req, res) => {
                 // Note: simple text/plain construction as per user's working snippet
                 const messageParts = [
                     `To: ${to}`,
-                    'Content-Type: text/plain; charset=utf-8',
+                    'Content-Type: text/html; charset=utf-8',
                     'MIME-Version: 1.0',
                     `Subject: ${subject}`,
                     '',
-                    body
+                    htmlBody
                 ];
                 const message = messageParts.join('\n');
 
@@ -420,6 +502,7 @@ const sendEmail = async (req, res) => {
                 });
 
                 console.log(`[SendEmail] Email sent successfully via Gmail API to ${to}`);
+
                 res.json({ success: true, message: 'Email sent successfully' });
             } catch (gmailError) {
                 console.error('Gmail API Error:', gmailError);
@@ -457,8 +540,8 @@ const sendEmail = async (req, res) => {
                 message: {
                     subject: subject,
                     body: {
-                        contentType: "Text",
-                        content: body
+                        contentType: "HTML",
+                        content: htmlBody
                     },
                     toRecipients: [
                         { emailAddress: { address: to } }
@@ -493,9 +576,10 @@ const sendEmail = async (req, res) => {
                 from: email,
                 to,
                 subject,
-                text: body,
+                html: htmlBody,
             });
             console.log(`[SendEmail] Email sent successfully to ${to}`);
+
             res.json({ success: true, message: 'Email sent successfully' });
         }
 
@@ -595,6 +679,7 @@ module.exports = {
     saveSmtpSettings,
     getEmailStatus,
     sendEmail,
+    trackEmailOpen,
     login,
     signup
 };
