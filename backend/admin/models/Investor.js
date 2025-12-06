@@ -7,6 +7,12 @@ const investorSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    serialNumber: {
+        type: String,
+        unique: true,
+        sparse: true,
+        index: true
+    },
     email: {
         type: String,
         required: true,

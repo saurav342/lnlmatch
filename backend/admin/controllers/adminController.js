@@ -510,6 +510,14 @@ const approvePotentialInvestorV2 = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Potential investor V2 not found' });
         }
 
+        // Enforce verified status
+        if (potentialInvestor.status !== 'verified') {
+            return res.status(400).json({
+                success: false,
+                message: 'Investor must be verified before approval. Please verify the investor first.'
+            });
+        }
+
         // Map to Investor model
         const newInvestor = new Investor({
             name: `${potentialInvestor.firstName} ${potentialInvestor.lastName}`.trim(),
@@ -518,8 +526,9 @@ const approvePotentialInvestorV2 = async (req, res) => {
             websiteUrl: potentialInvestor.website,
             linkedinUrl: potentialInvestor.personLinkedinUrl,
             notes: potentialInvestor.notes,
+            serialNumber: potentialInvestor.serialNumber, // Map serial number
             type: 'Institutional', // Defaulting to Institutional
-            source: 'excel-import-v2',
+            source: 'migration', // Changed to migration as per requirement
             isActive: true,
             isVerified: true,
             // Map other fields as best as possible
@@ -543,7 +552,8 @@ const approvePotentialInvestorV2 = async (req, res) => {
                 body: {
                     name: `${potentialInvestor.firstName} ${potentialInvestor.lastName}`.trim(),
                     companyName: potentialInvestor.companyName,
-                    email: potentialInvestor.email
+                    email: potentialInvestor.email,
+                    serialNumber: potentialInvestor.serialNumber
                 }
             },
             ipAddress: req.ip || req.connection.remoteAddress,

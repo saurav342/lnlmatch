@@ -15,7 +15,7 @@ const adminActivitySchema = new mongoose.Schema({
     },
     targetType: {
         type: String,
-        enum: ['user', 'investor', 'potential_investor', 'subscription', 'system', 'data'],
+        enum: ['user', 'investor', 'potential_investor', 'potential_investor_v2', 'subscription', 'system', 'data'],
         required: true,
         index: true
     },
