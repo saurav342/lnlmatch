@@ -13,6 +13,7 @@ export interface PotentialInvestor {
     personLinkedinUrl: string;
     authentic: string;
     notes: string;
+    adminNotes?: string;
     status: 'pending' | 'verified' | 'approved' | 'rejected';
     createdAt: string;
 }

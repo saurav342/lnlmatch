@@ -77,8 +77,8 @@ const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
                                 onClick={onPrevious}
                                 disabled={!hasPrevious}
                                 className={`p-1 rounded-md transition-colors ${hasPrevious
-                                        ? 'hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 shadow-sm'
-                                        : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                                    ? 'hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 shadow-sm'
+                                    : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
                                     }`}
                                 title="Previous Investor"
                             >
@@ -89,8 +89,8 @@ const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
                                 onClick={onNext}
                                 disabled={!hasNext}
                                 className={`p-1 rounded-md transition-colors ${hasNext
-                                        ? 'hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 shadow-sm'
-                                        : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                                    ? 'hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 shadow-sm'
+                                    : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
                                     }`}
                                 title="Next Investor"
                             >
@@ -144,6 +144,25 @@ const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
                             ) : (
                                 <p className="text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
                                     {formData.notes || 'No notes available.'}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Admin Notes */}
+                        <div className="md:col-span-2 space-y-2">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">Admin Notes</h3>
+                            {isEditing ? (
+                                <textarea
+                                    name="adminNotes"
+                                    value={formData.adminNotes || ''}
+                                    onChange={handleChange}
+                                    rows={4}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    placeholder="Internal notes for admins..."
+                                />
+                            ) : (
+                                <p className="text-gray-700 dark:text-gray-300 bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-100 dark:border-yellow-900/30">
+                                    {formData.adminNotes || 'No admin notes available.'}
                                 </p>
                             )}
                         </div>

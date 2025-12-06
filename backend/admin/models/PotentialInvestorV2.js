@@ -18,6 +18,7 @@ const potentialInvestorV2Schema = new mongoose.Schema({
     personLinkedinUrl: { type: String, trim: true },
     authentic: { type: String, trim: true },
     notes: { type: String, trim: true },
+    adminNotes: { type: String, trim: true },
     status: {
         type: String,
         enum: ['pending', 'verified', 'approved', 'rejected'],
