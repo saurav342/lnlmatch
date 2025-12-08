@@ -501,6 +501,39 @@ const updatePotentialInvestorV2 = async (req, res) => {
 };
 
 /**
+ * Helper to map investment stages to enum values
+ */
+const mapInvestmentStage = (stageString) => {
+    if (!stageString) return [];
+    const validStages = ['pre-seed', 'seed', 'series-a', 'series-b', 'series-c', 'growth', 'late-stage'];
+    const normalizedInput = stageString.toLowerCase().trim();
+
+    // Split by comma if present for multi-value strings like "Seed, Series A"
+    const parts = normalizedInput.split(',').map(s => s.trim());
+    const mappedStages = new Set();
+
+    parts.forEach(part => {
+        // Direct match check
+        if (validStages.includes(part)) {
+            mappedStages.add(part);
+            return;
+        }
+
+        // Keyword matching
+        if (part.includes('pre-seed') || part.includes('pre seed')) mappedStages.add('pre-seed');
+        else if (part.includes('seed')) mappedStages.add('seed');
+
+        if (part.includes('series a')) mappedStages.add('series-a');
+        if (part.includes('series b')) mappedStages.add('series-b');
+        if (part.includes('series c')) mappedStages.add('series-c');
+        if (part.includes('growth')) mappedStages.add('growth');
+        if (part.includes('late')) mappedStages.add('late-stage');
+    });
+
+    return Array.from(mappedStages);
+};
+
+/**
  * Approve potential investor V2
  */
 const approvePotentialInvestorV2 = async (req, res) => {
@@ -518,25 +551,49 @@ const approvePotentialInvestorV2 = async (req, res) => {
             });
         }
 
+        // Prepare notes - append admin notes if they exist
+        let finalNotes = potentialInvestor.notes || '';
+        if (potentialInvestor.adminNotes) {
+            finalNotes = finalNotes
+                ? `${finalNotes}\n\nAdmin Notes: ${potentialInvestor.adminNotes}`
+                : `Admin Notes: ${potentialInvestor.adminNotes}`;
+        }
+
+        // Map industries properly (split by comma)
+        const industries = potentialInvestor.industry
+            ? potentialInvestor.industry.split(',').map(s => s.trim()).filter(Boolean)
+            : [];
+
+        // Map investment stages properly
+        const investmentStage = mapInvestmentStage(potentialInvestor.stageOfInvestment);
+
         // Map to Investor model
         const newInvestor = new Investor({
-            name: `${potentialInvestor.firstName} ${potentialInvestor.lastName}`.trim(),
+            name: `${potentialInvestor.firstName || ''} ${potentialInvestor.lastName || ''}`.trim() || potentialInvestor.companyName,
             email: potentialInvestor.email,
             company: potentialInvestor.companyName,
             websiteUrl: potentialInvestor.website,
             linkedinUrl: potentialInvestor.personLinkedinUrl,
-            notes: potentialInvestor.notes,
+            notes: finalNotes,
             serialNumber: potentialInvestor.serialNumber, // Map serial number
             type: 'Institutional', // Defaulting to Institutional
             source: 'migration', // Changed to migration as per requirement
             isActive: true,
             isVerified: true,
-            // Map other fields as best as possible
-            industries: potentialInvestor.industry ? [potentialInvestor.industry] : [],
-            investmentStage: potentialInvestor.stageOfInvestment ? potentialInvestor.stageOfInvestment.split(',').map(s => s.trim()) : []
+            industries: industries,
+            investmentStage: investmentStage
         });
 
-        await newInvestor.save();
+        try {
+            await newInvestor.save();
+        } catch (validationError) {
+            console.error('Validation error during investor creation:', validationError);
+            return res.status(400).json({
+                success: false,
+                message: `Validation failed: ${validationError.message}`,
+                details: validationError.errors
+            });
+        }
 
         // Update status to approved instead of deleting
         potentialInvestor.status = 'approved';
@@ -550,7 +607,7 @@ const approvePotentialInvestorV2 = async (req, res) => {
             targetId: potentialInvestor._id,
             metadata: {
                 body: {
-                    name: `${potentialInvestor.firstName} ${potentialInvestor.lastName}`.trim(),
+                    name: newInvestor.name,
                     companyName: potentialInvestor.companyName,
                     email: potentialInvestor.email,
                     serialNumber: potentialInvestor.serialNumber
@@ -563,7 +620,7 @@ const approvePotentialInvestorV2 = async (req, res) => {
         res.json({ success: true, message: 'Investor approved and moved to main list', data: newInvestor, potentialInvestor });
     } catch (error) {
         console.error('Approve potential investor V2 error:', error);
-        res.status(500).json({ success: false, message: 'Failed to approve investor' });
+        res.status(500).json({ success: false, message: 'Failed to approve investor: ' + error.message });
     }
 };
 
