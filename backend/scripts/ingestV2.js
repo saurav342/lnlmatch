@@ -76,20 +76,37 @@ const ingestV2 = async () => {
                         if (!name) continue;
 
                         investorData.companyName = name;
-                        investorData.website = row['Website'];
                         investorData.email = row['Email Id'] || row['Investor Email ID'];
                         investorData.industry = row['Industry Focus'];
                         investorData.stageOfInvestment = row['Investment Stage'];
-                        investorData.notes = `Description: ${row['Description'] || ''}\n\nInvestor Type: ${row['Investor Type'] || ''}\n\nRegional Focus: ${row['Regional Focus'] || ''}\n\nApplication Link: ${row['Application Link'] || ''}`;
 
-                        // Try to get contact person name
+                        // New fields mapping
+                        investorData.description = row['Description'];
+                        investorData.investmentThesis = row['Investment Thesis'] || row['Description']; // Fallback if needed
+                        investorData.type = row['Investor Type'] || 'Institutional';
+                        investorData.regionalFocus = row['Regional Focus'];
+                        investorData.website = row['Website'] || row['Application Link']; // Prioritize website col but keep link
+
+                        // Parse Team Member if available
                         if (row['Team Member']) {
-                            const nameParts = row['Team Member'].split(' ');
+                            const memberName = row['Team Member'];
+                            const memberRole = row['Role'] || 'Team Member'; // Assume role col might exist or default
+                            const memberLinkedin = row['Investor LinkedIn Profile']; // This is usually for the person
+
+                            investorData.teamMembers = [{
+                                name: memberName,
+                                role: memberRole,
+                                linkedinUrl: memberLinkedin
+                            }];
+
+                            // Also populate top level name for search/compatibility
+                            const nameParts = memberName.split(' ');
                             investorData.firstName = nameParts[0];
                             investorData.lastName = nameParts.slice(1).join(' ') || '';
+                            investorData.personLinkedinUrl = memberLinkedin;
                         }
 
-                        investorData.personLinkedinUrl = row['Investor LinkedIn Profile'];
+                        investorData.notes = `Application Link: ${row['Application Link'] || ''}`; // Reduced notes
                     }
 
                     // Check for duplicates based on email or company name

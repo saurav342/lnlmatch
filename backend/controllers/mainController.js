@@ -46,8 +46,11 @@ const getInvestors = async (req, res) => {
                 websiteUrl: investor.websiteUrl,
                 website: investor.websiteUrl, // Map websiteUrl to website for frontend
                 notes: investor.notes,
-                description: investor.notes || 'No description available.', // Map notes to description
+                description: investor.description || investor.notes || 'No description available.', // Map notes to description
                 tags: investor.tags || [],
+                investmentThesis: investor.investmentThesis,
+                regionalFocus: investor.regionalFocus || [],
+                teamMembers: investor.teamMembers || [],
                 type: investor.type,
                 isActive: investor.isActive,
                 isVerified: investor.isVerified,

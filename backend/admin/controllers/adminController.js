@@ -568,7 +568,16 @@ const approvePotentialInvestorV2 = async (req, res) => {
         const investmentStage = mapInvestmentStage(potentialInvestor.stageOfInvestment);
 
         // Map to Investor model
+        // Map new fields
         const newInvestor = new Investor({
+            // Map new fields
+            description: potentialInvestor.description,
+            investmentThesis: potentialInvestor.investmentThesis,
+            regionalFocus: potentialInvestor.regionalFocus ? potentialInvestor.regionalFocus.split(',').map(s => s.trim()) : [],
+            teamMembers: potentialInvestor.teamMembers || [], // Already an array of objects
+            ticketSize: { min: 0, max: 0 }, // Default or parse if available
+            type: potentialInvestor.type || 'Institutional',
+
             name: `${potentialInvestor.firstName || ''} ${potentialInvestor.lastName || ''}`.trim() || potentialInvestor.companyName,
             email: potentialInvestor.email,
             company: potentialInvestor.companyName,
@@ -576,7 +585,6 @@ const approvePotentialInvestorV2 = async (req, res) => {
             linkedinUrl: potentialInvestor.personLinkedinUrl,
             notes: finalNotes,
             serialNumber: potentialInvestor.serialNumber, // Map serial number
-            type: 'Institutional', // Defaulting to Institutional
             source: 'migration', // Changed to migration as per requirement
             isActive: true,
             isVerified: true,

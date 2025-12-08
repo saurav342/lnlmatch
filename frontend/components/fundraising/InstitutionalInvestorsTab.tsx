@@ -15,7 +15,7 @@ import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fetchInvestors } from "@/lib/api";
 import { OpportunityCard } from "@/components/discovery/OpportunityCard";
-import { OpportunityDetailsModal } from "@/components/discovery/OpportunityDetailsModal";
+import { InstitutionalInvestorModal } from "@/components/fundraising/InstitutionalInvestorModal";
 
 export function InstitutionalInvestorsTab() {
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
@@ -177,11 +177,10 @@ export function InstitutionalInvestorsTab() {
                 </div>
             </div>
 
-            <OpportunityDetailsModal
+            <InstitutionalInvestorModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                data={selectedInvestor}
-                type="investor"
+                investor={selectedInvestor}
             />
         </div>
     );
