@@ -37,7 +37,7 @@ const PotentialInvestorTable: React.FC<PotentialInvestorTableProps> = ({
                         </tr>
                     ) : (
                         investors.map((investor) => (
-                            <tr key={investor._id} className="group hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors duration-200">
+                            <tr key={investor._id} onClick={() => onView(investor)} className="group cursor-pointer hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors duration-200">
                                 <td className="px-6 py-5">
                                     <div className="font-mono text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded w-fit">
                                         {investor.serialNumber || '-'}
@@ -78,21 +78,21 @@ const PotentialInvestorTable: React.FC<PotentialInvestorTableProps> = ({
                                 <td className="px-6 py-5 text-right">
                                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                         <button
-                                            onClick={() => onView(investor)}
+                                            onClick={(e) => { e.stopPropagation(); onView(investor); }}
                                             className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
                                             title="View Details"
                                         >
                                             <Eye className="w-4 h-4" />
                                         </button>
                                         <button
-                                            onClick={() => onApprove(investor._id)}
+                                            onClick={(e) => { e.stopPropagation(); onApprove(investor._id); }}
                                             className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all"
                                             title="Approve"
                                         >
                                             <Check className="w-4 h-4" />
                                         </button>
                                         <button
-                                            onClick={() => onReject(investor._id)}
+                                            onClick={(e) => { e.stopPropagation(); onReject(investor._id); }}
                                             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
                                             title="Reject"
                                         >
