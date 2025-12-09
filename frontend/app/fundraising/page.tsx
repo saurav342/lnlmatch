@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AngelInvestorsTab } from "@/components/fundraising/AngelInvestorsTab";
 import { InstitutionalInvestorsTab } from "@/components/fundraising/InstitutionalInvestorsTab";
-import { GrantsTab } from "@/components/fundraising/GrantsTab";
+
 
 export default function FundraisingPage() {
     return (
@@ -18,19 +18,15 @@ export default function FundraisingPage() {
                 </div>
 
                 <Tabs defaultValue="angels" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 lg:w-[600px]">
+                    <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
                         <TabsTrigger value="angels">Angel Investors</TabsTrigger>
                         <TabsTrigger value="institutional">Institutional Investors</TabsTrigger>
-                        <TabsTrigger value="grants">Grants</TabsTrigger>
                     </TabsList>
                     <TabsContent value="angels" className="mt-6">
                         <AngelInvestorsTab />
                     </TabsContent>
                     <TabsContent value="institutional" className="mt-6">
                         <InstitutionalInvestorsTab />
-                    </TabsContent>
-                    <TabsContent value="grants" className="mt-6">
-                        <GrantsTab />
                     </TabsContent>
                 </Tabs>
             </div>
