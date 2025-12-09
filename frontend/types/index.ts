@@ -98,7 +98,7 @@ export type GrantType =
 
 export interface MatchingCriteria {
   id: string;
-  type: "balanced" | "regional" | "impact" | "growth";
+  type: "balanced" | "regional" | "impact" | "growth" | "country" | "recent" | "sector_stage";
   name: string;
   description: string;
   icon: string;

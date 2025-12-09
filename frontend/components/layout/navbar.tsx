@@ -34,6 +34,7 @@ import {
     Moon,
     Menu,
     Search,
+    Heart,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { fetchUserProfile } from "@/lib/api";
@@ -55,6 +56,7 @@ const iconMap: Record<string, any> = {
     LineChart,
     CreditCard,
     Settings,
+    Heart,
 };
 
 export function Navbar() {
