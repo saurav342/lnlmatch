@@ -574,15 +574,20 @@ const approvePotentialInvestorV2 = async (req, res) => {
             description: potentialInvestor.description,
             investmentThesis: potentialInvestor.investmentThesis,
             regionalFocus: potentialInvestor.regionalFocus ? potentialInvestor.regionalFocus.split(',').map(s => s.trim()) : [],
-            teamMembers: potentialInvestor.teamMembers || [], // Already an array of objects
+            teamMembers: potentialInvestor.teamMembers?.map(member => ({
+                name: member.name,
+                role: member.designation,
+                email: member.email,
+                linkedinUrl: member.linkedinUrl
+            })) || [],
             ticketSize: { min: 0, max: 0 }, // Default or parse if available
             type: potentialInvestor.type || 'Institutional',
 
-            name: `${potentialInvestor.firstName || ''} ${potentialInvestor.lastName || ''}`.trim() || potentialInvestor.companyName,
-            email: potentialInvestor.email,
+            name: (potentialInvestor.teamMembers?.[0]?.name || `${potentialInvestor.firstName || ''} ${potentialInvestor.lastName || ''}`).trim() || potentialInvestor.companyName,
+            email: potentialInvestor.teamMembers?.[0]?.email || potentialInvestor.email,
             company: potentialInvestor.companyName,
             websiteUrl: potentialInvestor.website,
-            linkedinUrl: potentialInvestor.personLinkedinUrl,
+            linkedinUrl: potentialInvestor.teamMembers?.[0]?.linkedinUrl || potentialInvestor.personLinkedinUrl,
             notes: finalNotes,
             serialNumber: potentialInvestor.serialNumber, // Map serial number
             source: 'migration', // Changed to migration as per requirement

@@ -14,6 +14,12 @@ export interface PotentialInvestor {
     authentic: string;
     notes: string;
     adminNotes?: string;
+    teamMembers?: {
+        name: string;
+        email: string;
+        designation: string;
+        linkedinUrl: string;
+    }[];
     status: 'pending' | 'verified' | 'approved' | 'rejected';
     createdAt: string;
 }

@@ -24,7 +24,12 @@ const potentialInvestorV2Schema = new mongoose.Schema({
     investmentThesis: { type: String, trim: true },
     regionalFocus: { type: String, trim: true }, // Comma separated string
     ticketSize: { type: String, trim: true },
-    teamMembers: { type: mongoose.Schema.Types.Mixed }, // Array of objects
+    teamMembers: [{
+        name: { type: String, trim: true },
+        email: { type: String, trim: true, lowercase: true },
+        designation: { type: String, trim: true },
+        linkedinUrl: { type: String, trim: true }
+    }], // Array of objects
     tags: [{ type: String, trim: true }],
     type: { type: String, trim: true, default: 'Institutional' },
     status: {

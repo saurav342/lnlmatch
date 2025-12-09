@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PotentialInvestor } from '../../types/potentialInvestor';
-import { X, Check, Trash2, ExternalLink, Save, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Check, Trash2, ExternalLink, Save, Loader2, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 
 interface PotentialInvestorModalProps {
     investor: PotentialInvestor | null;
@@ -34,7 +34,17 @@ const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
 
     useEffect(() => {
         if (investor) {
-            setFormData(investor);
+            // Migrate old contact fields to teamMembers if teamMembers is empty
+            const initialData = { ...investor };
+            if ((!initialData.teamMembers || initialData.teamMembers.length === 0) && (initialData.firstName || initialData.email)) {
+                initialData.teamMembers = [{
+                    name: `${initialData.firstName || ''} ${initialData.lastName || ''}`.trim(),
+                    email: initialData.email || '',
+                    designation: '',
+                    linkedinUrl: initialData.personLinkedinUrl || ''
+                }];
+            }
+            setFormData(initialData);
             setIsEditing(false);
         }
     }, [investor]);
@@ -44,6 +54,30 @@ const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleContactChange = (index: number, field: string, value: string) => {
+        setFormData(prev => {
+            const newTeamMembers = [...(prev.teamMembers || [])];
+            if (!newTeamMembers[index]) return prev;
+            // @ts-ignore
+            newTeamMembers[index] = { ...newTeamMembers[index], [field]: value };
+            return { ...prev, teamMembers: newTeamMembers };
+        });
+    };
+
+    const addContact = () => {
+        setFormData(prev => ({
+            ...prev,
+            teamMembers: [...(prev.teamMembers || []), { name: '', email: '', designation: '', linkedinUrl: '' }]
+        }));
+    };
+
+    const removeContact = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            teamMembers: prev.teamMembers?.filter((_, i) => i !== index) || []
+        }));
     };
 
     const handleSave = () => {
@@ -121,12 +155,73 @@ const PotentialInvestorModal: React.FC<PotentialInvestorModalProps> = ({
                         </div>
 
                         {/* Contact Info */}
+                        {/* Contact Info */}
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">Contact Info</h3>
-                            <InputField label="First Name" name="firstName" value={formData.firstName} onChange={handleChange} isEditing={isEditing} />
-                            <InputField label="Last Name" name="lastName" value={formData.lastName} onChange={handleChange} isEditing={isEditing} />
-                            <InputField label="Email" name="email" value={formData.email} onChange={handleChange} isEditing={isEditing} />
-                            <InputField label="Person LinkedIn" name="personLinkedinUrl" value={formData.personLinkedinUrl} onChange={handleChange} isEditing={isEditing} isLink />
+                            <div className="flex items-center justify-between border-b pb-2">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Contact Info</h3>
+                                {isEditing && (
+                                    <button
+                                        onClick={addContact}
+                                        className="flex items-center gap-1 text-sm px-3 py-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors"
+                                    >
+                                        <Plus className="w-4 h-4" /> Add Contact
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="space-y-4">
+                                {formData.teamMembers?.map((member, index) => (
+                                    <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg relative group border border-gray-100 dark:border-gray-700">
+                                        {isEditing && (formData.teamMembers?.length || 0) > 0 && (
+                                            <button
+                                                onClick={() => removeContact(index)}
+                                                className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all bg-white dark:bg-gray-800 rounded-full shadow-sm"
+                                                title="Remove Contact"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <InputField
+                                                label="Name"
+                                                name={`teamMembers[${index}].name`}
+                                                value={member.name}
+                                                onChange={(e) => handleContactChange(index, 'name', e.target.value)}
+                                                isEditing={isEditing}
+                                            />
+                                            <InputField
+                                                label="Email"
+                                                name={`teamMembers[${index}].email`}
+                                                value={member.email}
+                                                onChange={(e) => handleContactChange(index, 'email', e.target.value)}
+                                                isEditing={isEditing}
+                                            />
+                                            <InputField
+                                                label="Designation"
+                                                name={`teamMembers[${index}].designation`}
+                                                value={member.designation}
+                                                onChange={(e) => handleContactChange(index, 'designation', e.target.value)}
+                                                isEditing={isEditing}
+                                            />
+                                            <InputField
+                                                label="LinkedIn"
+                                                name={`teamMembers[${index}].linkedinUrl`}
+                                                value={member.linkedinUrl}
+                                                onChange={(e) => handleContactChange(index, 'linkedinUrl', e.target.value)}
+                                                isEditing={isEditing}
+                                                isLink
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                                {(!formData.teamMembers || formData.teamMembers.length === 0) && (
+                                    <div className="text-center py-6 text-gray-500 italic bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                                        No contact details available
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Authentic field moved here or keep separate? distinct from team members usually */}
                             <InputField label="Authentic" name="authentic" value={formData.authentic} onChange={handleChange} isEditing={isEditing} />
                         </div>
 
