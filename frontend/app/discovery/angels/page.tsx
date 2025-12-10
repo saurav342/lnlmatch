@@ -39,9 +39,11 @@ export default function AngelsPage() {
     useEffect(() => {
         async function loadInvestors() {
             try {
-                const data = await fetchInvestors();
+                const response = await fetchInvestors();
+                // Handle new response format with meta
+                const investorData = response.investors || response;
                 // Filter for Angel investors
-                const angelInvestors = data.filter((inv: any) => inv.type === 'Angel');
+                const angelInvestors = (investorData as any[]).filter((inv: any) => inv.type === 'Angel');
                 setInvestors(angelInvestors);
             } catch (error) {
                 console.error("Failed to load investors", error);
