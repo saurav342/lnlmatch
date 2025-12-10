@@ -13,7 +13,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
-import { fetchInvestors } from "@/lib/api";
+import { fetchInvestors, toggleWishlist } from "@/lib/api";
 import { OpportunityCard } from "@/components/discovery/OpportunityCard";
 import { InstitutionalInvestorModal } from "@/components/fundraising/InstitutionalInvestorModal";
 
@@ -45,13 +45,21 @@ export function InstitutionalInvestorsTab() {
         setIsModalOpen(true);
     };
 
-    const handleToggleWishlist = (id: string) => {
-        // Implement wishlist toggle logic here
-        console.log("Toggle wishlist for", id);
-        // Optimistic update for UI demo
-        setInvestors(prev => prev.map(inv =>
-            inv.id === id ? { ...inv, isWishlisted: !inv.isWishlisted } : inv
-        ));
+    const handleToggleWishlist = async (id: string) => {
+        try {
+            // Optimistic update
+            setInvestors(prev => prev.map(inv =>
+                inv.id === id ? { ...inv, isWishlisted: !inv.isWishlisted } : inv
+            ));
+
+            await toggleWishlist(id);
+        } catch (error) {
+            console.error("Failed to toggle wishlist", error);
+            // Revert on failure
+            setInvestors(prev => prev.map(inv =>
+                inv.id === id ? { ...inv, isWishlisted: !inv.isWishlisted } : inv
+            ));
+        }
     };
 
     if (loading) {

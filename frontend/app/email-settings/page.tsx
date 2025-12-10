@@ -90,10 +90,10 @@ export default function EmailSettingsPage() {
                 <div>
                     <h1 className="text-3xl font-bold">Email Settings</h1>
                     <p className="text-muted-foreground">
-                        Connect your email account to send communications from your own email address for <span className="text-emerald-600 font-semibold">Capify</span>
+                        Connect your email account to send communications from your own email address for <span className="text-orange-600 font-semibold">Capify</span>
                     </p>
                     <div className="mt-2">
-                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
+                        <Badge variant="secondary" className="bg-orange-100 text-orange-800 hover:bg-orange-100">
                             <CheckCircle2 className="mr-1 h-3 w-3" /> Capify
                         </Badge>
                     </div>
@@ -104,18 +104,18 @@ export default function EmailSettingsPage() {
                         {/* Connected Email Account Status - Shows when connected */}
                         {connectedProvider && (
                             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                                <div className="p-6 bg-emerald-600 rounded-t-lg text-white">
+                                <div className="p-6 bg-orange-600 rounded-t-lg text-white">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <CheckCircle2 className="h-5 w-5" />
                                             <h3 className="font-semibold">Connected Email Account</h3>
                                         </div>
                                         <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-none">
-                                            <div className="mr-1 h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                                            <div className="mr-1 h-1.5 w-1.5 rounded-full bg-orange-400" />
                                             Active
                                         </Badge>
                                     </div>
-                                    <p className="mt-2 text-emerald-100 text-sm">
+                                    <p className="mt-2 text-orange-100 text-sm">
                                         Your emails will be sent from this account
                                     </p>
                                 </div>
@@ -130,7 +130,7 @@ export default function EmailSettingsPage() {
                                                 <p className="text-muted-foreground">starelectric.ev@gmail.com</p>
                                                 <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                                                     <span className="flex items-center gap-1">
-                                                        <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                                                        <CheckCircle2 className="h-3 w-3 text-orange-600" />
                                                         Connected: Dec 09, 2025
                                                     </span>
                                                     <span>•</span>
@@ -142,7 +142,7 @@ export default function EmailSettingsPage() {
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
-                                            <Button variant="outline" size="sm" className="h-8 text-emerald-600 border-emerald-200 hover:bg-emerald-50">
+                                            <Button variant="outline" size="sm" className="h-8 text-orange-600 border-orange-200 hover:bg-orange-50">
                                                 <Mail className="mr-2 h-3 w-3" />
                                                 Test Email
                                             </Button>
@@ -180,7 +180,7 @@ export default function EmailSettingsPage() {
                                         </p>
                                     </div>
                                     <div className="flex justify-end">
-                                        <Button className="bg-emerald-600 hover:bg-emerald-700">
+                                        <Button className="bg-orange-600 hover:bg-orange-700">
                                             <CheckCircle2 className="mr-2 h-4 w-4" />
                                             Update Name
                                         </Button>
@@ -200,9 +200,9 @@ export default function EmailSettingsPage() {
                             <Card>
                                 <CardHeader>
                                     <div className="flex items-center gap-2">
-                                        <div className="rounded-full bg-emerald-100 p-1">
-                                            <div className="rounded-full border-2 border-emerald-600 p-0.5">
-                                                <div className="h-2 w-2 rounded-full bg-emerald-600" />
+                                        <div className="rounded-full bg-orange-100 p-1">
+                                            <div className="rounded-full border-2 border-orange-600 p-0.5">
+                                                <div className="h-2 w-2 rounded-full bg-orange-600" />
                                             </div>
                                         </div>
                                         <CardTitle className="text-lg">Connect Email Account</CardTitle>
@@ -214,7 +214,7 @@ export default function EmailSettingsPage() {
                                 <CardContent>
                                     <div className="grid gap-4 md:grid-cols-3">
                                         {/* Gmail */}
-                                        <div className="flex flex-col items-center justify-between rounded-xl border p-6 text-center hover:border-emerald-500 hover:shadow-md transition-all">
+                                        <div className="flex flex-col items-center justify-between rounded-xl border p-6 text-center hover:border-orange-500 hover:shadow-md transition-all">
                                             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-orange-100">
                                                 <Mail className="h-8 w-8 text-orange-600" />
                                             </div>
@@ -223,11 +223,11 @@ export default function EmailSettingsPage() {
                                                 Connect your Gmail account using secure OAuth 2.0 authentication.
                                             </p>
                                             <div className="mt-4 w-full space-y-2">
-                                                <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 w-full justify-center">
+                                                <Badge variant="secondary" className="bg-orange-100 text-orange-800 w-full justify-center">
                                                     <span className="mr-1">★</span> Most Popular
                                                 </Badge>
                                                 <Button
-                                                    className="w-full bg-emerald-600 hover:bg-emerald-700"
+                                                    className="w-full bg-orange-600 hover:bg-orange-700"
                                                     onClick={() => handleConnect('Gmail')}
                                                 >
                                                     Connect Gmail
@@ -250,7 +250,7 @@ export default function EmailSettingsPage() {
                                                 </Badge>
                                                 <Button
                                                     variant="outline"
-                                                    className="w-full border-emerald-600 text-emerald-600 hover:bg-emerald-50"
+                                                    className="w-full border-orange-600 text-orange-600 hover:bg-orange-50"
                                                     onClick={() => handleConnect('Outlook')}
                                                 >
                                                     Connect Outlook
@@ -286,15 +286,15 @@ export default function EmailSettingsPage() {
                         )}
 
                         {connectedProvider && (
-                            <Alert className="bg-emerald-50 border-emerald-200">
-                                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                                <AlertTitle className="text-emerald-800">Gmail account connected successfully!</AlertTitle>
+                            <Alert className="bg-orange-50 border-orange-200">
+                                <CheckCircle2 className="h-4 w-4 text-orange-600" />
+                                <AlertTitle className="text-orange-800">Gmail account connected successfully!</AlertTitle>
                             </Alert>
                         )}
                     </div>
 
                     <div className="space-y-6">
-                        <Card className="bg-emerald-600 text-white border-none">
+                        <Card className="bg-orange-600 text-white border-none">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-white">
                                     <Info className="h-5 w-5" />
@@ -308,7 +308,7 @@ export default function EmailSettingsPage() {
                                     </div>
                                     <div>
                                         <h4 className="font-semibold">Choose Provider</h4>
-                                        <p className="text-sm text-emerald-100">
+                                        <p className="text-sm text-orange-100">
                                             Select Gmail, Outlook, or configure custom SMTP settings.
                                         </p>
                                     </div>
@@ -319,7 +319,7 @@ export default function EmailSettingsPage() {
                                     </div>
                                     <div>
                                         <h4 className="font-semibold">Authorize Access</h4>
-                                        <p className="text-sm text-emerald-100">
+                                        <p className="text-sm text-orange-100">
                                             Grant permission to send emails on your behalf securely.
                                         </p>
                                     </div>
@@ -330,7 +330,7 @@ export default function EmailSettingsPage() {
                                     </div>
                                     <div>
                                         <h4 className="font-semibold">Start Sending</h4>
-                                        <p className="text-sm text-emerald-100">
+                                        <p className="text-sm text-orange-100">
                                             All emails will be sent from your connected account.
                                         </p>
                                     </div>
@@ -338,7 +338,7 @@ export default function EmailSettingsPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-green-800 text-white border-none">
+                        <Card className="bg-orange-800 text-white border-none">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-white">
                                     <Shield className="h-5 w-5" />
@@ -347,19 +347,19 @@ export default function EmailSettingsPage() {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="flex gap-3">
-                                    <Lock className="h-5 w-5 shrink-0 text-emerald-200" />
+                                    <Lock className="h-5 w-5 shrink-0 text-orange-200" />
                                     <div>
                                         <h4 className="text-sm font-semibold">End-to-End Encryption</h4>
-                                        <p className="text-xs text-emerald-200">
+                                        <p className="text-xs text-orange-200">
                                             All credentials encrypted using industry standards
                                         </p>
                                     </div>
                                 </div>
                                 <div className="flex gap-3">
-                                    <Shield className="h-5 w-5 shrink-0 text-emerald-200" />
+                                    <Shield className="h-5 w-5 shrink-0 text-orange-200" />
                                     <div>
                                         <h4 className="text-sm font-semibold">OAuth 2.0 Authentication</h4>
-                                        <p className="text-xs text-emerald-200">
+                                        <p className="text-xs text-orange-200">
                                             Secure authorization without password sharing
                                         </p>
                                     </div>

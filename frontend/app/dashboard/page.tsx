@@ -191,8 +191,8 @@ export default function DashboardPage() {
                                     {stats.grantsAvailable}
                                 </h3>
                             </div>
-                            <div className="rounded-2xl bg-emerald-500/10 p-3">
-                                <Award className="h-6 w-6 text-emerald-600 dark:text-emerald-500" />
+                            <div className="rounded-2xl bg-orange-500/10 p-3">
+                                <Award className="h-6 w-6 text-orange-600 dark:text-orange-500" />
                             </div>
                         </Card>
 

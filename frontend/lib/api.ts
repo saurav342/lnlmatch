@@ -56,3 +56,28 @@ export async function fetchUserProfile() {
     if (!res.ok) throw new Error('Failed to fetch user profile');
     return res.json();
 }
+
+export async function toggleWishlist(investorId: string) {
+    const token = localStorage.getItem('authToken');
+    const res = await fetch(`${API_BASE_URL}/wishlist/toggle`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ investorId })
+    });
+    if (!res.ok) throw new Error('Failed to toggle wishlist');
+    return res.json();
+}
+
+export async function fetchWishlist() {
+    const token = localStorage.getItem('authToken');
+    const res = await fetch(`${API_BASE_URL}/wishlist`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    if (!res.ok) throw new Error('Failed to fetch wishlist');
+    return res.json();
+}

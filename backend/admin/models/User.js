@@ -79,7 +79,11 @@ const userSchema = new mongoose.Schema({
         connectedAt: {
             type: Date
         }
-    }
+    },
+    wishlist: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Investor'
+    }]
 }, {
     timestamps: true
 });

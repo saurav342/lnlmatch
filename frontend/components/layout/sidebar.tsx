@@ -172,9 +172,8 @@ export function Sidebar() {
                             className="w-full justify-start gap-3 px-2"
                         >
                             <Avatar className="h-8 w-8">
-                                <AvatarImage src="https://avatar.vercel.sh/user.png" />
-                                <AvatarFallback>
-                                    {userProfile?.name?.substring(0, 2).toUpperCase() || 'U'}
+                                <AvatarFallback className="bg-orange-600 text-white font-bold">
+                                    {userProfile?.name?.split(' ').map((n: string, i: number, a: string[]) => i === 0 || i === a.length - 1 ? n[0] : '').join('').toUpperCase() || 'U'}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-1 flex-col items-start text-left">

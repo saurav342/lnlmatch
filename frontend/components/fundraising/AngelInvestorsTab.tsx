@@ -28,12 +28,26 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, MoreVertical, Heart, Mail, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
-import { fetchInvestors, API_BASE_URL } from "@/lib/api";
+import { fetchInvestors, toggleWishlist, API_BASE_URL } from "@/lib/api";
 
 export function AngelInvestorsTab() {
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
     const [investors, setInvestors] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const handleToggleWishlist = async (id: string) => {
+        try {
+            setInvestors(prev => prev.map(inv =>
+                inv.id === id ? { ...inv, isWishlisted: !inv.isWishlisted } : inv
+            ));
+            await toggleWishlist(id);
+        } catch (error) {
+            console.error("Failed to toggle wishlist", error);
+            setInvestors(prev => prev.map(inv =>
+                inv.id === id ? { ...inv, isWishlisted: !inv.isWishlisted } : inv
+            ));
+        }
+    };
 
     useEffect(() => {
         async function loadInvestors() {
@@ -219,8 +233,11 @@ export function AngelInvestorsTab() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem>
-                                                        <Heart className="mr-2 h-4 w-4" />
+                                                    <DropdownMenuItem onClick={(e) => {
+                                                        e.preventDefault(); // Prevent menu from closing immediately
+                                                        handleToggleWishlist(investor.id);
+                                                    }}>
+                                                        <Heart className={`mr-2 h-4 w-4 ${investor.isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
                                                         {investor.isWishlisted
                                                             ? "Remove from wishlist"
                                                             : "Add to wishlist"}

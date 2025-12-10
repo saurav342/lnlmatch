@@ -28,6 +28,23 @@ const getInvestors = async (req, res) => {
     try {
         const investors = await Investor.find({});
 
+        // Get user if authenticated to check wishlist
+        const authHeader = req.headers.authorization;
+        let wishlistedIds = [];
+
+        if (authHeader) {
+            const token = authHeader.split(' ')[1];
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+                const user = await User.findById(decoded.id);
+                if (user && user.wishlist) {
+                    wishlistedIds = user.wishlist.map(id => id.toString());
+                }
+            } catch (e) {
+                // Ignore token errors here, just don't show wishlist status
+            }
+        }
+
         // Transform data to match frontend expectations
         const transformedInvestors = investors.map(inv => {
             const investor = inv.toObject();
@@ -54,7 +71,7 @@ const getInvestors = async (req, res) => {
                 type: investor.type,
                 isActive: investor.isActive,
                 isVerified: investor.isVerified,
-                isWishlisted: investor.isWishlisted || false,
+                isWishlisted: wishlistedIds.includes(investor._id.toString()),
                 avatar: investor.avatar,
                 source: investor.source,
                 createdAt: investor.createdAt,
@@ -66,6 +83,96 @@ const getInvestors = async (req, res) => {
     } catch (error) {
         console.error('Error fetching investors:', error);
         res.status(500).json({ success: false, message: 'Failed to fetch investors' });
+    }
+};
+
+const toggleWishlist = async (req, res) => {
+    const { investorId } = req.body;
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+        const user = await User.findById(decoded.id);
+
+        if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+        const index = user.wishlist.indexOf(investorId);
+
+        let isWishlisted = false;
+        if (index > -1) {
+            // Remove from wishlist
+            user.wishlist.splice(index, 1);
+            isWishlisted = false;
+        } else {
+            // Add to wishlist
+            user.wishlist.push(investorId);
+            isWishlisted = true;
+        }
+
+        await user.save();
+        res.json({ success: true, isWishlisted });
+    } catch (error) {
+        console.error('Error toggling wishlist:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+const getWishlist = async (req, res) => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+        const user = await User.findById(decoded.id).populate('wishlist');
+
+        if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+        const investors = user.wishlist || [];
+
+        // Transform data to match frontend expectations (reuse logic from getInvestors or abstract it)
+        // For simplicity, duplicate mapping logic here but for populated items
+        const transformedInvestors = investors.map(inv => {
+            const investor = inv.toObject ? inv.toObject() : inv;
+            return {
+                id: investor._id.toString(),
+                name: investor.name,
+                email: investor.email,
+                company: investor.company || 'N/A',
+                location: investor.location || 'N/A',
+                ticketSize: investor.ticketSize && (investor.ticketSize.min || investor.ticketSize.max)
+                    ? `$${investor.ticketSize.min || 0}K - $${investor.ticketSize.max || 0}K`
+                    : 'N/A',
+                industries: investor.industries || [],
+                investmentStage: investor.investmentStage || [],
+                linkedinUrl: investor.linkedinUrl,
+                websiteUrl: investor.websiteUrl,
+                website: investor.websiteUrl,
+                notes: investor.notes,
+                description: investor.description || investor.notes || 'No description available.',
+                tags: investor.tags || [],
+                investmentThesis: investor.investmentThesis,
+                regionalFocus: investor.regionalFocus || [],
+                teamMembers: investor.teamMembers || [],
+                type: investor.type,
+                isActive: investor.isActive,
+                isVerified: investor.isVerified,
+                isWishlisted: true, // By definition
+                avatar: investor.avatar,
+                source: investor.source,
+                createdAt: investor.createdAt,
+                updatedAt: investor.updatedAt
+            };
+        });
+
+        res.json(transformedInvestors);
+    } catch (error) {
+        console.error('Error fetching wishlist:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch wishlist' });
     }
 };
 
@@ -684,5 +791,7 @@ module.exports = {
     sendEmail,
     trackEmailOpen,
     login,
-    signup
+    signup,
+    toggleWishlist,
+    getWishlist
 };

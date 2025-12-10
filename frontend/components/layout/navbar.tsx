@@ -210,9 +210,8 @@ export function Navbar() {
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="relative h-10 w-10 rounded-full ml-1 p-0 overflow-hidden ring-2 ring-transparent hover:ring-orange-500/20 transition-all">
                                     <Avatar className="h-full w-full">
-                                        <AvatarImage src="https://avatar.vercel.sh/user.png" />
-                                        <AvatarFallback className="bg-gradient-to-br from-orange-100 to-orange-50 text-orange-600">
-                                            {userProfile?.name?.substring(0, 2).toUpperCase() || 'U'}
+                                        <AvatarFallback className="bg-orange-600 text-white font-bold">
+                                            {userProfile?.name?.split(' ').map((n: string, i: number, a: string[]) => i === 0 || i === a.length - 1 ? n[0] : '').join('').toUpperCase() || 'U'}
                                         </AvatarFallback>
                                     </Avatar>
                                 </Button>

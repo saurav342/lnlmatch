@@ -11,6 +11,8 @@ const {
     handleGmailCallback,
     getEmailStatus,
     trackEmailOpen,
+    toggleWishlist,
+    getWishlist
 } = require('../controllers/mainController');
 
 router.get('/dashboard/stats', getDashboardStats);
@@ -18,6 +20,8 @@ router.get('/investors', getInvestors);
 router.get('/grants', getGrants);
 router.get('/crm/campaigns', getCampaigns);
 router.get('/user/profile', getUserProfile);
+router.get('/wishlist', getWishlist);
+router.post('/wishlist/toggle', toggleWishlist);
 
 // Email Connection Routes
 router.get('/auth/google', initiateGmailAuth);
