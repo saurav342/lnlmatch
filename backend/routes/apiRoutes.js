@@ -12,7 +12,9 @@ const {
     getEmailStatus,
     trackEmailOpen,
     toggleWishlist,
-    getWishlist
+    getWishlist,
+    viewContact,
+    getUserLimits
 } = require('../controllers/mainController');
 
 router.get('/dashboard/stats', getDashboardStats);
@@ -20,8 +22,10 @@ router.get('/investors', getInvestors);
 router.get('/grants', getGrants);
 router.get('/crm/campaigns', getCampaigns);
 router.get('/user/profile', getUserProfile);
+router.get('/user/limits', getUserLimits);
 router.get('/wishlist', getWishlist);
 router.post('/wishlist/toggle', toggleWishlist);
+router.post('/contact/view', viewContact);
 
 // Email Connection Routes
 router.get('/auth/google', initiateGmailAuth);

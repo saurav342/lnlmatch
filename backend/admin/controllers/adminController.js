@@ -675,6 +675,33 @@ const rejectPotentialInvestorV2 = async (req, res) => {
     }
 };
 
+/**
+ * Export all PotentialInvestorV2 data to Excel
+ */
+const { exportPotentialInvestorsV2ToExcel } = require('../utils/dataExport');
+
+const exportPotentialInvestorsV2 = async (req, res) => {
+    try {
+        // Fetch all potential investors V2
+        const investors = await PotentialInvestorV2.find({}).sort({ serialNumber: 1 }).lean();
+
+        // Generate Excel buffer
+        const buffer = await exportPotentialInvestorsV2ToExcel(investors);
+
+        // Set headers for file download
+        const filename = `potential_investors_v2_${new Date().toISOString().split('T')[0]}.xlsx`;
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Length', buffer.length);
+
+        // Send the buffer
+        res.send(buffer);
+    } catch (error) {
+        console.error('Export potential investors V2 error:', error);
+        res.status(500).json({ success: false, message: 'Failed to export potential investors V2' });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getActivityLog,
@@ -688,5 +715,6 @@ module.exports = {
     getPotentialInvestorDetailsV2,
     updatePotentialInvestorV2,
     approvePotentialInvestorV2,
-    rejectPotentialInvestorV2
+    rejectPotentialInvestorV2,
+    exportPotentialInvestorsV2
 };

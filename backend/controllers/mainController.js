@@ -26,32 +26,66 @@ const getDashboardStats = (req, res) => {
 
 const getInvestors = async (req, res) => {
     try {
-        const investors = await Investor.find({});
-
-        // Get user if authenticated to check wishlist
+        // Get user info for subscription plan and wishlist
         const authHeader = req.headers.authorization;
         let wishlistedIds = [];
+        let viewedContactIds = [];
+        let subscriptionPlan = 'free';
+        let userId = null;
 
         if (authHeader) {
             const token = authHeader.split(' ')[1];
             try {
                 const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+                userId = decoded.id;
                 const user = await User.findById(decoded.id);
-                if (user && user.wishlist) {
-                    wishlistedIds = user.wishlist.map(id => id.toString());
+                if (user) {
+                    subscriptionPlan = user.subscriptionPlan || 'free';
+                    if (user.wishlist) {
+                        wishlistedIds = user.wishlist.map(id => id.toString());
+                    }
+                    if (user.viewedContacts) {
+                        viewedContactIds = user.viewedContacts.map(id => id.toString());
+                    }
                 }
             } catch (e) {
-                // Ignore token errors here, just don't show wishlist status
+                // Ignore token errors here
             }
         }
 
+        // Define limits based on subscription plan
+        const isPremium = subscriptionPlan === 'pro' || subscriptionPlan === 'enterprise';
+        const limits = {
+            angel: isPremium ? 2000 : 50,
+            institutional: isPremium ? 2000 : 50,
+            contacts: isPremium ? Infinity : 20
+        };
+
+        // Fetch all investors
+        const allInvestors = await Investor.find({});
+
+        // Separate by type
+        const angelInvestors = allInvestors.filter(inv => inv.type === 'Angel');
+        const institutionalInvestors = allInvestors.filter(inv => inv.type === 'Institutional');
+
+        // Apply limits
+        const limitedAngel = angelInvestors.slice(0, limits.angel);
+        const limitedInstitutional = institutionalInvestors.slice(0, limits.institutional);
+        const limitedInvestors = [...limitedAngel, ...limitedInstitutional];
+
         // Transform data to match frontend expectations
-        const transformedInvestors = investors.map(inv => {
+        const transformedInvestors = limitedInvestors.map(inv => {
             const investor = inv.toObject();
+            const investorIdStr = investor._id.toString();
+            const hasViewedContact = viewedContactIds.includes(investorIdStr);
+
+            // For free users, hide contact info unless they've already viewed it
+            const shouldHideContact = !isPremium && !hasViewedContact;
+
             return {
-                id: investor._id.toString(),
+                id: investorIdStr,
                 name: investor.name,
-                email: investor.email,
+                email: shouldHideContact ? null : investor.email,
                 company: investor.company || 'N/A',
                 location: investor.location || 'N/A',
                 ticketSize: investor.ticketSize && (investor.ticketSize.min || investor.ticketSize.max)
@@ -59,27 +93,50 @@ const getInvestors = async (req, res) => {
                     : 'N/A',
                 industries: investor.industries || [],
                 investmentStage: investor.investmentStage || [],
-                linkedinUrl: investor.linkedinUrl,
+                linkedinUrl: shouldHideContact ? null : investor.linkedinUrl,
                 websiteUrl: investor.websiteUrl,
-                website: investor.websiteUrl, // Map websiteUrl to website for frontend
+                website: investor.websiteUrl,
                 notes: investor.notes,
-                description: investor.description || investor.notes || 'No description available.', // Map notes to description
+                description: investor.description || investor.notes || 'No description available.',
                 tags: investor.tags || [],
                 investmentThesis: investor.investmentThesis,
                 regionalFocus: investor.regionalFocus || [],
-                teamMembers: investor.teamMembers || [],
+                teamMembers: shouldHideContact ? [] : (investor.teamMembers || []),
                 type: investor.type,
                 isActive: investor.isActive,
                 isVerified: investor.isVerified,
-                isWishlisted: wishlistedIds.includes(investor._id.toString()),
+                isWishlisted: wishlistedIds.includes(investorIdStr),
                 avatar: investor.avatar,
                 source: investor.source,
                 createdAt: investor.createdAt,
-                updatedAt: investor.updatedAt
+                updatedAt: investor.updatedAt,
+                // New fields for contact access
+                contactRevealed: !shouldHideContact,
+                hasContactInfo: !!investor.email
             };
         });
 
-        res.json(transformedInvestors);
+        // Return with metadata
+        res.json({
+            investors: transformedInvestors,
+            meta: {
+                subscriptionPlan,
+                isPremium,
+                limits: {
+                    angel: limits.angel,
+                    institutional: limits.institutional,
+                    contacts: isPremium ? 'unlimited' : limits.contacts
+                },
+                counts: {
+                    angel: limitedAngel.length,
+                    institutional: limitedInstitutional.length,
+                    totalAngel: angelInvestors.length,
+                    totalInstitutional: institutionalInvestors.length,
+                    contactsViewed: viewedContactIds.length,
+                    contactsRemaining: isPremium ? 'unlimited' : Math.max(0, limits.contacts - viewedContactIds.length)
+                }
+            }
+        });
     } catch (error) {
         console.error('Error fetching investors:', error);
         res.status(500).json({ success: false, message: 'Failed to fetch investors' });
@@ -776,6 +833,118 @@ const signup = async (req, res) => {
     }
 };
 
+const viewContact = async (req, res) => {
+    const { investorId } = req.body;
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) return res.status(401).json({ success: false, message: 'Unauthorized' });
+    if (!investorId) return res.status(400).json({ success: false, message: 'Investor ID required' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+        const user = await User.findById(decoded.id);
+
+        if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+        const isPremium = user.subscriptionPlan === 'pro' || user.subscriptionPlan === 'enterprise';
+        const contactLimit = 20;
+
+        // Check if already viewed
+        const alreadyViewed = user.viewedContacts && user.viewedContacts.some(id => id.toString() === investorId);
+
+        if (alreadyViewed) {
+            // Already revealed, just return the contact info
+            const investor = await Investor.findById(investorId);
+            if (!investor) return res.status(404).json({ success: false, message: 'Investor not found' });
+
+            return res.json({
+                success: true,
+                alreadyViewed: true,
+                contact: {
+                    email: investor.email,
+                    linkedinUrl: investor.linkedinUrl,
+                    teamMembers: investor.teamMembers || []
+                },
+                remaining: isPremium ? 'unlimited' : Math.max(0, contactLimit - (user.viewedContacts?.length || 0))
+            });
+        }
+
+        // For free users, check limit
+        if (!isPremium) {
+            const currentCount = user.viewedContacts?.length || 0;
+            if (currentCount >= contactLimit) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Contact view limit reached. Upgrade to premium for unlimited access.',
+                    limitReached: true,
+                    remaining: 0
+                });
+            }
+        }
+
+        // Add to viewed contacts
+        if (!user.viewedContacts) {
+            user.viewedContacts = [];
+        }
+        user.viewedContacts.push(investorId);
+        await user.save();
+
+        // Get investor contact info
+        const investor = await Investor.findById(investorId);
+        if (!investor) return res.status(404).json({ success: false, message: 'Investor not found' });
+
+        res.json({
+            success: true,
+            contact: {
+                email: investor.email,
+                linkedinUrl: investor.linkedinUrl,
+                teamMembers: investor.teamMembers || []
+            },
+            remaining: isPremium ? 'unlimited' : Math.max(0, contactLimit - user.viewedContacts.length)
+        });
+    } catch (error) {
+        console.error('Error viewing contact:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+const getUserLimits = async (req, res) => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+        const user = await User.findById(decoded.id);
+
+        if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+        const isPremium = user.subscriptionPlan === 'pro' || user.subscriptionPlan === 'enterprise';
+        const contactLimit = 20;
+        const viewedCount = user.viewedContacts?.length || 0;
+
+        res.json({
+            success: true,
+            subscriptionPlan: user.subscriptionPlan || 'free',
+            isPremium,
+            limits: {
+                angel: isPremium ? 2000 : 50,
+                institutional: isPremium ? 2000 : 50,
+                contacts: isPremium ? 'unlimited' : contactLimit
+            },
+            usage: {
+                contactsViewed: viewedCount,
+                contactsRemaining: isPremium ? 'unlimited' : Math.max(0, contactLimit - viewedCount)
+            }
+        });
+    } catch (error) {
+        console.error('Error getting user limits:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getInvestors,
@@ -793,5 +962,7 @@ module.exports = {
     login,
     signup,
     toggleWishlist,
-    getWishlist
+    getWishlist,
+    viewContact,
+    getUserLimits
 };

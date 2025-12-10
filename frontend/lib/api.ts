@@ -2,6 +2,29 @@
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
 
+export interface InvestorMeta {
+    subscriptionPlan: string;
+    isPremium: boolean;
+    limits: {
+        angel: number;
+        institutional: number;
+        contacts: number | 'unlimited';
+    };
+    counts: {
+        angel: number;
+        institutional: number;
+        totalAngel: number;
+        totalInstitutional: number;
+        contactsViewed: number;
+        contactsRemaining: number | 'unlimited';
+    };
+}
+
+export interface InvestorsResponse {
+    investors: any[];
+    meta: InvestorMeta;
+}
+
 export async function fetchDashboardStats() {
     const token = localStorage.getItem('authToken');
     const res = await fetch(`${API_BASE_URL}/dashboard/stats`, {
@@ -13,7 +36,7 @@ export async function fetchDashboardStats() {
     return res.json();
 }
 
-export async function fetchInvestors() {
+export async function fetchInvestors(): Promise<InvestorsResponse> {
     const token = localStorage.getItem('authToken');
     const res = await fetch(`${API_BASE_URL}/investors`, {
         headers: {
@@ -79,5 +102,29 @@ export async function fetchWishlist() {
         }
     });
     if (!res.ok) throw new Error('Failed to fetch wishlist');
+    return res.json();
+}
+
+export async function viewContact(investorId: string) {
+    const token = localStorage.getItem('authToken');
+    const res = await fetch(`${API_BASE_URL}/contact/view`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ investorId })
+    });
+    return res.json();
+}
+
+export async function fetchUserLimits() {
+    const token = localStorage.getItem('authToken');
+    const res = await fetch(`${API_BASE_URL}/user/limits`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    if (!res.ok) throw new Error('Failed to fetch user limits');
     return res.json();
 }

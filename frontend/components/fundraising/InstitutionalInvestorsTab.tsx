@@ -11,9 +11,9 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search } from "lucide-react";
+import { Search, Crown } from "lucide-react";
 import { useEffect, useState } from "react";
-import { fetchInvestors, toggleWishlist } from "@/lib/api";
+import { fetchInvestors, toggleWishlist, InvestorMeta } from "@/lib/api";
 import { OpportunityCard } from "@/components/discovery/OpportunityCard";
 import { InstitutionalInvestorModal } from "@/components/fundraising/InstitutionalInvestorModal";
 
@@ -23,14 +23,20 @@ export function InstitutionalInvestorsTab() {
     const [loading, setLoading] = useState(true);
     const [selectedInvestor, setSelectedInvestor] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [meta, setMeta] = useState<InvestorMeta | null>(null);
 
     useEffect(() => {
         async function loadInvestors() {
             try {
-                const data = await fetchInvestors();
+                const response = await fetchInvestors();
+                // Handle new response format with meta
+                const investorData = response.investors || response;
+                const metaData = response.meta || null;
+
                 // Filter for Institutional investors
-                const institutionalInvestors = data.filter((inv: any) => inv.type === 'Institutional');
+                const institutionalInvestors = investorData.filter((inv: any) => inv.type === 'Institutional');
                 setInvestors(institutionalInvestors);
+                setMeta(metaData);
             } catch (error) {
                 console.error("Failed to load investors", error);
             } finally {
@@ -69,6 +75,8 @@ export function InstitutionalInvestorsTab() {
             </div>
         );
     }
+
+    const showUpgradeBanner = meta && !meta.isPremium && meta.counts.totalInstitutional > meta.counts.institutional;
 
     return (
         <div className="space-y-6">
@@ -171,6 +179,31 @@ export function InstitutionalInvestorsTab() {
                         <Badge variant="secondary">{investors.length} Results</Badge>
                     </div>
 
+                    {/* Upgrade Banner */}
+                    {showUpgradeBanner && (
+                        <Card className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 dark:from-amber-950/30 dark:to-orange-950/30 dark:border-amber-800">
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-full">
+                                        <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-amber-900 dark:text-amber-100">
+                                            Viewing {meta?.counts.institutional} of {meta?.counts.totalInstitutional} institutional investors
+                                        </p>
+                                        <p className="text-sm text-amber-700 dark:text-amber-300">
+                                            Upgrade to Premium to access all {meta?.counts.totalInstitutional} institutional investors
+                                        </p>
+                                    </div>
+                                </div>
+                                <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
+                                    <Crown className="h-4 w-4 mr-2" />
+                                    Upgrade Now
+                                </Button>
+                            </div>
+                        </Card>
+                    )}
+
                     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                         {investors.map((investor) => (
                             <OpportunityCard
@@ -189,6 +222,7 @@ export function InstitutionalInvestorsTab() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 investor={selectedInvestor}
+                meta={meta}
             />
         </div>
     );

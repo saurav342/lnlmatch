@@ -83,6 +83,10 @@ const userSchema = new mongoose.Schema({
     wishlist: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Investor'
+    }],
+    viewedContacts: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Investor'
     }]
 }, {
     timestamps: true

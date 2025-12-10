@@ -6,7 +6,7 @@ import PotentialInvestorTable from '../../../components/admin/PotentialInvestorT
 import PotentialInvestorModal from '../../../components/admin/PotentialInvestorModal';
 import { AdminLayout } from '../../../components/admin/AdminLayout';
 import { SectionHeader } from '../../../components/admin/SectionHeader';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Download } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
@@ -231,16 +231,68 @@ const InvestorProcessingV2Page = () => {
         }
     };
 
+    const [isExporting, setIsExporting] = useState(false);
+
+    const handleExportExcel = async () => {
+        try {
+            setIsExporting(true);
+            const token = localStorage.getItem('authToken');
+            const res = await fetch(`${API_BASE_URL}/admin/potential-investors-v2/export`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error('Failed to export');
+            }
+
+            // Get the blob from response
+            const blob = await res.blob();
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `potential_investors_v2_${new Date().toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            toast.success('Excel file downloaded successfully');
+        } catch (error) {
+            console.error('Error exporting:', error);
+            toast.error('Failed to export data');
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     return (
         <AdminLayout>
             <div className="space-y-8 max-w-[1600px] mx-auto">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-                        Investor Processing V2
-                    </h1>
-                    <p className="text-gray-500 dark:text-gray-400">
-                        Review and approve potential investors from the Grants, Angel, and Institutional lists.
-                    </p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex flex-col gap-2">
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                            Investor Processing V2
+                        </h1>
+                        <p className="text-gray-500 dark:text-gray-400">
+                            Review and approve potential investors from the Grants, Angel, and Institutional lists.
+                        </p>
+                    </div>
+                    <button
+                        onClick={handleExportExcel}
+                        disabled={isExporting}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-400 text-white rounded-lg transition-all text-sm font-medium shadow-sm hover:shadow-md active:scale-95 disabled:cursor-not-allowed"
+                    >
+                        {isExporting ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <Download className="w-4 h-4" />
+                        )}
+                        {isExporting ? 'Exporting...' : 'Download All'}
+                    </button>
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">

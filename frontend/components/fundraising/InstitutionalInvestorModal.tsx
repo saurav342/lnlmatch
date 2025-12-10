@@ -7,21 +7,71 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Globe, Mail, ArrowLeft, Heart, Linkedin } from "lucide-react";
+import { MapPin, Globe, Mail, ArrowLeft, Heart, Linkedin, Lock, Crown, Eye } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
+import { viewContact, InvestorMeta } from "@/lib/api";
 
 interface InstitutionalInvestorModalProps {
     isOpen: boolean;
     onClose: () => void;
     investor: any;
+    meta?: InvestorMeta | null;
 }
 
 export function InstitutionalInvestorModal({
     isOpen,
     onClose,
     investor,
+    meta,
 }: InstitutionalInvestorModalProps) {
+    const [revealedContact, setRevealedContact] = useState<{
+        email?: string;
+        linkedinUrl?: string;
+        teamMembers?: any[];
+    } | null>(null);
+    const [isRevealing, setIsRevealing] = useState(false);
+    const [revealError, setRevealError] = useState<string | null>(null);
+    const [contactsRemaining, setContactsRemaining] = useState<number | 'unlimited'>(
+        meta?.counts.contactsRemaining || 'unlimited'
+    );
+
     if (!investor) return null;
+
+    const isPremium = meta?.isPremium ?? true;
+    const contactRevealed = investor.contactRevealed || revealedContact !== null;
+    const displayEmail = revealedContact?.email || investor.email;
+    const displayLinkedin = revealedContact?.linkedinUrl || investor.linkedinUrl;
+    const displayTeamMembers = revealedContact?.teamMembers || investor.teamMembers || [];
+
+    const handleRevealContact = async () => {
+        if (!investor.id) return;
+
+        setIsRevealing(true);
+        setRevealError(null);
+
+        try {
+            const response = await viewContact(investor.id);
+
+            if (response.success) {
+                setRevealedContact(response.contact);
+                if (response.remaining !== undefined) {
+                    setContactsRemaining(response.remaining);
+                }
+            } else {
+                if (response.limitReached) {
+                    setRevealError('You have reached your free plan limit. Upgrade to premium for unlimited access.');
+                } else {
+                    setRevealError(response.message || 'Failed to reveal contact');
+                }
+            }
+        } catch (error) {
+            console.error('Error revealing contact:', error);
+            setRevealError('Failed to reveal contact information');
+        } finally {
+            setIsRevealing(false);
+        }
+    };
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -120,16 +170,59 @@ export function InstitutionalInvestorModal({
                         <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
                             <Mail className="h-4 w-4 text-muted-foreground" />
                             Contact Information:
+                            {!isPremium && contactsRemaining !== 'unlimited' && (
+                                <span className="text-xs font-normal text-muted-foreground ml-2">
+                                    ({contactsRemaining} reveals remaining)
+                                </span>
+                            )}
                         </h4>
-                        {investor.email ? (
-                            <div className="flex items-center gap-2">
-                                <Mail className="h-4 w-4 text-emerald-600" />
-                                <a href={`mailto:${investor.email}`} className="text-sm hover:underline">
-                                    {investor.email}
-                                </a>
-                            </div>
+
+                        {contactRevealed ? (
+                            // Show revealed contact info
+                            displayEmail ? (
+                                <div className="flex items-center gap-2">
+                                    <Mail className="h-4 w-4 text-emerald-600" />
+                                    <a href={`mailto:${displayEmail}`} className="text-sm hover:underline">
+                                        {displayEmail}
+                                    </a>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">No email available</p>
+                            )
                         ) : (
-                            <p className="text-sm text-muted-foreground">Not available</p>
+                            // Show reveal button for free users
+                            <div className="space-y-3">
+                                {revealError ? (
+                                    <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+                                        <p className="text-sm text-red-700 dark:text-red-300">{revealError}</p>
+                                        <Button size="sm" className="mt-2 bg-amber-600 hover:bg-amber-700">
+                                            <Crown className="h-4 w-4 mr-2" />
+                                            Upgrade to Premium
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <Lock className="h-5 w-5 text-slate-500" />
+                                            <div>
+                                                <p className="text-sm font-medium">Contact info is hidden</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Use one of your {contactsRemaining} remaining reveals
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            onClick={handleRevealContact}
+                                            disabled={isRevealing}
+                                            className="bg-emerald-600 hover:bg-emerald-700"
+                                        >
+                                            <Eye className="h-4 w-4 mr-2" />
+                                            {isRevealing ? 'Revealing...' : 'Reveal Contact Info'}
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
 
@@ -146,11 +239,11 @@ export function InstitutionalInvestorModal({
                     </div>
 
                     {/* Team Members */}
-                    {investor.teamMembers && investor.teamMembers.length > 0 && (
+                    {displayTeamMembers && displayTeamMembers.length > 0 && (
                         <div>
                             <h4 className="text-sm font-semibold mb-3">Team Members</h4>
                             <div className="grid gap-3">
-                                {investor.teamMembers.map((member: any, idx: number) => (
+                                {displayTeamMembers.map((member: any, idx: number) => (
                                     <div key={idx} className="flex items-start justify-between p-4 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
                                         <div className="flex gap-3">
                                             <Avatar className="h-10 w-10">

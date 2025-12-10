@@ -26,14 +26,15 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, MoreVertical, Heart, Mail, ExternalLink } from "lucide-react";
+import { Search, MoreVertical, Heart, Mail, ExternalLink, Crown, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
-import { fetchInvestors, toggleWishlist, API_BASE_URL } from "@/lib/api";
+import { fetchInvestors, toggleWishlist, API_BASE_URL, InvestorMeta } from "@/lib/api";
 
 export function AngelInvestorsTab() {
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
     const [investors, setInvestors] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [meta, setMeta] = useState<InvestorMeta | null>(null);
 
     const handleToggleWishlist = async (id: string) => {
         try {
@@ -52,10 +53,15 @@ export function AngelInvestorsTab() {
     useEffect(() => {
         async function loadInvestors() {
             try {
-                const data = await fetchInvestors();
+                const response = await fetchInvestors();
+                // Handle new response format with meta
+                const investorData = response.investors || response;
+                const metaData = response.meta || null;
+
                 // Filter for Angel investors
-                const angelInvestors = data.filter((inv: any) => inv.type === 'Angel');
+                const angelInvestors = investorData.filter((inv: any) => inv.type === 'Angel');
                 setInvestors(angelInvestors);
+                setMeta(metaData);
             } catch (error) {
                 console.error("Failed to load investors", error);
             } finally {
@@ -72,6 +78,8 @@ export function AngelInvestorsTab() {
             </div>
         );
     }
+
+    const showUpgradeBanner = meta && !meta.isPremium && meta.counts.totalAngel > meta.counts.angel;
 
     return (
         <div className="space-y-6">
@@ -173,6 +181,31 @@ export function AngelInvestorsTab() {
                         </div>
                         <Badge variant="secondary">{investors.length} Results</Badge>
                     </div>
+
+                    {/* Upgrade Banner */}
+                    {showUpgradeBanner && (
+                        <Card className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 dark:from-amber-950/30 dark:to-orange-950/30 dark:border-amber-800">
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-full">
+                                        <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-amber-900 dark:text-amber-100">
+                                            Viewing {meta?.counts.angel} of {meta?.counts.totalAngel} angel investors
+                                        </p>
+                                        <p className="text-sm text-amber-700 dark:text-amber-300">
+                                            Upgrade to Premium to access all {meta?.counts.totalAngel} angel investors
+                                        </p>
+                                    </div>
+                                </div>
+                                <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
+                                    <Crown className="h-4 w-4 mr-2" />
+                                    Upgrade Now
+                                </Button>
+                            </div>
+                        </Card>
+                    )}
 
                     <Card>
                         <Table>

@@ -204,9 +204,92 @@ function convertToCSV(data, columns) {
     return [headers, ...rows].join('\n');
 }
 
+/**
+ * Export PotentialInvestorV2 data to Excel
+ * @param {Array} investors - Array of potential investor V2 objects
+ * @returns {Promise<Buffer>} - Excel file buffer
+ */
+async function exportPotentialInvestorsV2ToExcel(investors) {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Potential Investors V2');
+
+    // Define columns
+    worksheet.columns = [
+        { header: 'Serial Number', key: 'serialNumber', width: 15 },
+        { header: 'Company Name', key: 'companyName', width: 25 },
+        { header: 'Website', key: 'website', width: 30 },
+        { header: 'Company LinkedIn', key: 'companyLinkedinUrl', width: 35 },
+        { header: 'Twitter', key: 'twitterUrl', width: 30 },
+        { header: 'Industry', key: 'industry', width: 25 },
+        { header: 'Stage of Investment', key: 'stageOfInvestment', width: 20 },
+        { header: 'Type', key: 'type', width: 15 },
+        { header: 'First Name', key: 'firstName', width: 15 },
+        { header: 'Last Name', key: 'lastName', width: 15 },
+        { header: 'Email', key: 'email', width: 30 },
+        { header: 'Person LinkedIn', key: 'personLinkedinUrl', width: 35 },
+        { header: 'Description', key: 'description', width: 40 },
+        { header: 'Investment Thesis', key: 'investmentThesis', width: 40 },
+        { header: 'Regional Focus', key: 'regionalFocus', width: 25 },
+        { header: 'Ticket Size', key: 'ticketSize', width: 20 },
+        { header: 'Team Members', key: 'teamMembers', width: 50 },
+        { header: 'Tags', key: 'tags', width: 30 },
+        { header: 'Status', key: 'status', width: 12 },
+        { header: 'Notes', key: 'notes', width: 35 },
+        { header: 'Admin Notes', key: 'adminNotes', width: 35 },
+        { header: 'Created At', key: 'createdAt', width: 20 }
+    ];
+
+    // Style header row
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF4472C4' }
+    };
+    worksheet.getRow(1).font = { color: { argb: 'FFFFFFFF' }, bold: true };
+
+    // Add data
+    investors.forEach(investor => {
+        // Format team members as a readable string
+        const teamMembersStr = investor.teamMembers?.map(tm =>
+            `${tm.name || ''}${tm.designation ? ` (${tm.designation})` : ''}${tm.email ? ` - ${tm.email}` : ''}`
+        ).join('; ') || '';
+
+        worksheet.addRow({
+            serialNumber: investor.serialNumber || '',
+            companyName: investor.companyName || '',
+            website: investor.website || '',
+            companyLinkedinUrl: investor.companyLinkedinUrl || '',
+            twitterUrl: investor.twitterUrl || '',
+            industry: investor.industry || '',
+            stageOfInvestment: investor.stageOfInvestment || '',
+            type: investor.type || '',
+            firstName: investor.firstName || '',
+            lastName: investor.lastName || '',
+            email: investor.email || '',
+            personLinkedinUrl: investor.personLinkedinUrl || '',
+            description: investor.description || '',
+            investmentThesis: investor.investmentThesis || '',
+            regionalFocus: investor.regionalFocus || '',
+            ticketSize: investor.ticketSize || '',
+            teamMembers: teamMembersStr,
+            tags: investor.tags?.join(', ') || '',
+            status: investor.status || '',
+            notes: investor.notes || '',
+            adminNotes: investor.adminNotes || '',
+            createdAt: investor.createdAt ? new Date(investor.createdAt).toLocaleDateString() : ''
+        });
+    });
+
+    // Generate buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+    return buffer;
+}
+
 module.exports = {
     exportUsersToExcel,
     exportSubscriptionsToExcel,
     exportInvestorsToExcel,
+    exportPotentialInvestorsV2ToExcel,
     convertToCSV
 };
