@@ -28,9 +28,11 @@ export default function InstitutionalPage() {
     useEffect(() => {
         async function loadInvestors() {
             try {
-                const data = await fetchInvestors();
+                const response = await fetchInvestors();
+                // Handle new response format with meta
+                const investorData = response.investors || response;
                 // Filter for Institutional investors
-                const institutionalInvestors = data.filter((inv: any) => inv.type === 'Institutional');
+                const institutionalInvestors = (investorData as any[]).filter((inv: any) => inv.type === 'Institutional');
                 setInvestors(institutionalInvestors);
             } catch (error) {
                 console.error("Failed to load investors", error);
