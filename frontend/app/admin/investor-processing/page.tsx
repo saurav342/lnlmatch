@@ -353,6 +353,26 @@ const InvestorProcessingPage = () => {
                         onApprove={handleApprove}
                         onReject={handleReject}
                         onUpdate={handleUpdate}
+                        onNext={() => {
+                            const currentIndex = investors.findIndex(inv => inv._id === selectedInvestor?._id);
+                            if (currentIndex >= 0 && currentIndex < investors.length - 1) {
+                                setSelectedInvestor(investors[currentIndex + 1]);
+                            }
+                        }}
+                        onPrevious={() => {
+                            const currentIndex = investors.findIndex(inv => inv._id === selectedInvestor?._id);
+                            if (currentIndex > 0) {
+                                setSelectedInvestor(investors[currentIndex - 1]);
+                            }
+                        }}
+                        hasNext={(() => {
+                            const currentIndex = investors.findIndex(inv => inv._id === selectedInvestor?._id);
+                            return currentIndex >= 0 && currentIndex < investors.length - 1;
+                        })()}
+                        hasPrevious={(() => {
+                            const currentIndex = investors.findIndex(inv => inv._id === selectedInvestor?._id);
+                            return currentIndex > 0;
+                        })()}
                     />
                 )}
             </div>
