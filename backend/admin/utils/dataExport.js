@@ -286,10 +286,74 @@ async function exportPotentialInvestorsV2ToExcel(investors) {
     return buffer;
 }
 
+/**
+ * Export PotentialInvestor (V1) data to Excel
+ * @param {Array} investors - Array of potential investor objects
+ * @returns {Promise<Buffer>} - Excel file buffer
+ */
+async function exportPotentialInvestorsToExcel(investors) {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Potential Investors');
+
+    // Define columns
+    worksheet.columns = [
+        { header: 'Serial Number', key: 'serialNumber', width: 15 },
+        { header: 'Company Name', key: 'companyName', width: 25 },
+        { header: 'Website', key: 'website', width: 30 },
+        { header: 'Company LinkedIn', key: 'companyLinkedinUrl', width: 35 },
+        { header: 'Twitter', key: 'twitterUrl', width: 30 },
+        { header: 'Industry', key: 'industry', width: 25 },
+        { header: 'Stage of Investment', key: 'stageOfInvestment', width: 20 },
+        { header: 'First Name', key: 'firstName', width: 15 },
+        { header: 'Last Name', key: 'lastName', width: 15 },
+        { header: 'Email', key: 'email', width: 30 },
+        { header: 'Person LinkedIn', key: 'personLinkedinUrl', width: 35 },
+        { header: 'Authentic', key: 'authentic', width: 12 },
+        { header: 'Status', key: 'status', width: 12 },
+        { header: 'Notes', key: 'notes', width: 35 },
+        { header: 'Created At', key: 'createdAt', width: 20 }
+    ];
+
+    // Style header row
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFED7D31' }
+    };
+    worksheet.getRow(1).font = { color: { argb: 'FFFFFFFF' }, bold: true };
+
+    // Add data
+    investors.forEach(investor => {
+        worksheet.addRow({
+            serialNumber: investor.serialNumber || '',
+            companyName: investor.companyName || '',
+            website: investor.website || '',
+            companyLinkedinUrl: investor.companyLinkedinUrl || '',
+            twitterUrl: investor.twitterUrl || '',
+            industry: investor.industry || '',
+            stageOfInvestment: investor.stageOfInvestment || '',
+            firstName: investor.firstName || '',
+            lastName: investor.lastName || '',
+            email: investor.email || '',
+            personLinkedinUrl: investor.personLinkedinUrl || '',
+            authentic: investor.authentic || '',
+            status: investor.status || '',
+            notes: investor.notes || '',
+            createdAt: investor.createdAt ? new Date(investor.createdAt).toLocaleDateString() : ''
+        });
+    });
+
+    // Generate buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+    return buffer;
+}
+
 module.exports = {
     exportUsersToExcel,
     exportSubscriptionsToExcel,
     exportInvestorsToExcel,
+    exportPotentialInvestorsToExcel,
     exportPotentialInvestorsV2ToExcel,
     convertToCSV
 };

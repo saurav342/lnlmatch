@@ -138,6 +138,12 @@ router.post(
 // Potential Investor Processing Routes
 // ============================================
 router.get(
+    '/potential-investors/export',
+    logAdminActivity('export_potential_investors', 'data'),
+    adminController.exportPotentialInvestors
+);
+
+router.get(
     '/potential-investors',
     adminController.getPotentialInvestors
 );

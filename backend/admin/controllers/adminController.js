@@ -678,7 +678,7 @@ const rejectPotentialInvestorV2 = async (req, res) => {
 /**
  * Export all PotentialInvestorV2 data to Excel
  */
-const { exportPotentialInvestorsV2ToExcel } = require('../utils/dataExport');
+const { exportPotentialInvestorsV2ToExcel, exportPotentialInvestorsToExcel } = require('../utils/dataExport');
 
 const exportPotentialInvestorsV2 = async (req, res) => {
     try {
@@ -702,6 +702,31 @@ const exportPotentialInvestorsV2 = async (req, res) => {
     }
 };
 
+/**
+ * Export all PotentialInvestor (V1) data to Excel
+ */
+const exportPotentialInvestors = async (req, res) => {
+    try {
+        // Fetch all potential investors
+        const investors = await PotentialInvestor.find({}).sort({ serialNumber: 1 }).lean();
+
+        // Generate Excel buffer
+        const buffer = await exportPotentialInvestorsToExcel(investors);
+
+        // Set headers for file download
+        const filename = `potential_investors_${new Date().toISOString().split('T')[0]}.xlsx`;
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Length', buffer.length);
+
+        // Send the buffer
+        res.send(buffer);
+    } catch (error) {
+        console.error('Export potential investors error:', error);
+        res.status(500).json({ success: false, message: 'Failed to export potential investors' });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getActivityLog,
@@ -711,6 +736,7 @@ module.exports = {
     updatePotentialInvestor,
     approvePotentialInvestor,
     rejectPotentialInvestor,
+    exportPotentialInvestors,
     getPotentialInvestorsV2,
     getPotentialInvestorDetailsV2,
     updatePotentialInvestorV2,
@@ -718,3 +744,4 @@ module.exports = {
     rejectPotentialInvestorV2,
     exportPotentialInvestorsV2
 };
+
