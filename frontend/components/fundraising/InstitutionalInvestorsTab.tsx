@@ -169,9 +169,9 @@ export function InstitutionalInvestorsTab() {
                 </Card>
 
                 {/* Results Grid + Detail Section */}
-                <div className={`grid gap-6 ${selectedInvestor ? 'xl:grid-cols-[1fr_380px]' : ''}`}>
+                <div className="flex gap-6">
                     {/* Cards Area */}
-                    <div className="space-y-4">
+                    <div className={`space-y-4 ${selectedInvestor ? 'flex-1 min-w-0' : 'flex-1'}`}>
                         <div className="flex items-center gap-4">
                             <div className="relative flex-1">
                                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -222,13 +222,17 @@ export function InstitutionalInvestorsTab() {
                         </div>
                     </div>
 
-                    {/* Detail Section - appears when investor is selected */}
+                    {/* Detail Section - appears when investor is selected, spans full height */}
                     {selectedInvestor && (
-                        <InvestorDetailSection
-                            investor={selectedInvestor}
-                            onClose={handleCloseDetails}
-                            meta={meta}
-                        />
+                        <div className="w-[380px] flex-shrink-0 hidden xl:block">
+                            <div className="sticky top-4">
+                                <InvestorDetailSection
+                                    investor={selectedInvestor}
+                                    onClose={handleCloseDetails}
+                                    meta={meta}
+                                />
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>
