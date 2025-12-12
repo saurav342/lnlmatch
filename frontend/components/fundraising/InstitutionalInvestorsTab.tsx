@@ -15,14 +15,13 @@ import { Search, Crown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fetchInvestors, toggleWishlist, InvestorMeta } from "@/lib/api";
 import { OpportunityCard } from "@/components/discovery/OpportunityCard";
-import { InstitutionalInvestorModal } from "@/components/fundraising/InstitutionalInvestorModal";
+import { InvestorDetailSection } from "@/components/fundraising/InvestorDetailSection";
 
 export function InstitutionalInvestorsTab() {
     const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
     const [investors, setInvestors] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedInvestor, setSelectedInvestor] = useState<any>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [meta, setMeta] = useState<InvestorMeta | null>(null);
 
     useEffect(() => {
@@ -48,7 +47,10 @@ export function InstitutionalInvestorsTab() {
 
     const handleViewDetails = (investor: any) => {
         setSelectedInvestor(investor);
-        setIsModalOpen(true);
+    };
+
+    const handleCloseDetails = () => {
+        setSelectedInvestor(null);
     };
 
     const handleToggleWishlist = async (id: string) => {
@@ -166,64 +168,70 @@ export function InstitutionalInvestorsTab() {
                     </div>
                 </Card>
 
-                {/* Results Grid */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                                placeholder="Search investors..."
-                                className="pl-9"
-                            />
-                        </div>
-                        <Badge variant="secondary">{investors.length} Results</Badge>
-                    </div>
-
-                    {/* Upgrade Banner */}
-                    {showUpgradeBanner && (
-                        <Card className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 dark:from-amber-950/30 dark:to-orange-950/30 dark:border-amber-800">
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-full">
-                                        <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-amber-900 dark:text-amber-100">
-                                            Viewing {meta?.counts.institutional} of {meta?.counts.totalInstitutional} institutional investors
-                                        </p>
-                                        <p className="text-sm text-amber-700 dark:text-amber-300">
-                                            Upgrade to Premium to access all {meta?.counts.totalInstitutional} institutional investors
-                                        </p>
-                                    </div>
-                                </div>
-                                <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
-                                    <Crown className="h-4 w-4 mr-2" />
-                                    Upgrade Now
-                                </Button>
+                {/* Results Grid + Detail Section */}
+                <div className={`grid gap-6 ${selectedInvestor ? 'xl:grid-cols-[1fr_380px]' : ''}`}>
+                    {/* Cards Area */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search investors..."
+                                    className="pl-9"
+                                />
                             </div>
-                        </Card>
-                    )}
+                            <Badge variant="secondary">{investors.length} Results</Badge>
+                        </div>
 
-                    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                        {investors.map((investor) => (
-                            <OpportunityCard
-                                key={investor.id}
-                                data={investor}
-                                type="investor"
-                                onViewDetails={handleViewDetails}
-                                onToggleWishlist={handleToggleWishlist}
-                            />
-                        ))}
+                        {/* Upgrade Banner */}
+                        {showUpgradeBanner && (
+                            <Card className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 dark:from-amber-950/30 dark:to-orange-950/30 dark:border-amber-800">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-full">
+                                            <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-amber-900 dark:text-amber-100">
+                                                Viewing {meta?.counts.institutional} of {meta?.counts.totalInstitutional} institutional investors
+                                            </p>
+                                            <p className="text-sm text-amber-700 dark:text-amber-300">
+                                                Upgrade to Premium to access all {meta?.counts.totalInstitutional} institutional investors
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
+                                        <Crown className="h-4 w-4 mr-2" />
+                                        Upgrade Now
+                                    </Button>
+                                </div>
+                            </Card>
+                        )}
+
+                        <div className={`grid gap-6 ${selectedInvestor ? 'md:grid-cols-1 lg:grid-cols-2' : 'md:grid-cols-2 xl:grid-cols-3'}`}>
+                            {investors.map((investor) => (
+                                <OpportunityCard
+                                    key={investor.id}
+                                    data={investor}
+                                    type="investor"
+                                    onViewDetails={handleViewDetails}
+                                    onToggleWishlist={handleToggleWishlist}
+                                    isSelected={selectedInvestor?.id === investor.id}
+                                />
+                            ))}
+                        </div>
                     </div>
+
+                    {/* Detail Section - appears when investor is selected */}
+                    {selectedInvestor && (
+                        <InvestorDetailSection
+                            investor={selectedInvestor}
+                            onClose={handleCloseDetails}
+                            meta={meta}
+                        />
+                    )}
                 </div>
             </div>
-
-            <InstitutionalInvestorModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                investor={selectedInvestor}
-                meta={meta}
-            />
         </div>
     );
 }

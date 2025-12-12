@@ -11,13 +11,18 @@ interface OpportunityCardProps {
     type: "investor" | "grant";
     onViewDetails: (data: any) => void;
     onToggleWishlist?: (id: string) => void;
+    isSelected?: boolean;
 }
 
-export function OpportunityCard({ data, type, onViewDetails, onToggleWishlist }: OpportunityCardProps) {
+export function OpportunityCard({ data, type, onViewDetails, onToggleWishlist, isSelected }: OpportunityCardProps) {
     const isInvestor = type === "investor";
 
     return (
-        <Card className="group flex flex-col h-full bg-card hover:shadow-xl hover:border-primary/20 transition-all duration-300 overflow-hidden relative border-border/60">
+        <Card className={cn(
+            "group flex flex-col h-full bg-card hover:shadow-xl hover:border-primary/20 transition-all duration-300 overflow-hidden relative border-border/60",
+            isSelected && "ring-2 ring-emerald-500 border-emerald-500 shadow-lg shadow-emerald-500/10"
+        )}>
+
             {/* Hover Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
