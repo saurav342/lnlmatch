@@ -168,10 +168,17 @@ export function InstitutionalInvestorsTab() {
                     </div>
                 </Card>
 
-                {/* Results Grid + Detail Section */}
-                <div className="flex gap-6">
-                    {/* Cards Area */}
-                    <div className={`space-y-4 ${selectedInvestor ? 'flex-1 min-w-0' : 'flex-1'}`}>
+                {/* Results Grid OR Detail Section */}
+                {selectedInvestor ? (
+                    /* Detail Section - replaces entire cards area when investor is selected */
+                    <InvestorDetailSection
+                        investor={selectedInvestor}
+                        onClose={handleCloseDetails}
+                        meta={meta}
+                    />
+                ) : (
+                    /* Cards Area - shown when no investor is selected */
+                    <div className="space-y-4">
                         <div className="flex items-center gap-4">
                             <div className="relative flex-1">
                                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -208,7 +215,7 @@ export function InstitutionalInvestorsTab() {
                             </Card>
                         )}
 
-                        <div className={`grid gap-6 ${selectedInvestor ? 'md:grid-cols-1 lg:grid-cols-2' : 'md:grid-cols-2 xl:grid-cols-3'}`}>
+                        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                             {investors.map((investor) => (
                                 <OpportunityCard
                                     key={investor.id}
@@ -216,25 +223,12 @@ export function InstitutionalInvestorsTab() {
                                     type="investor"
                                     onViewDetails={handleViewDetails}
                                     onToggleWishlist={handleToggleWishlist}
-                                    isSelected={selectedInvestor?.id === investor.id}
+                                    isSelected={false}
                                 />
                             ))}
                         </div>
                     </div>
-
-                    {/* Detail Section - appears when investor is selected, spans full height */}
-                    {selectedInvestor && (
-                        <div className="w-[380px] flex-shrink-0 hidden xl:block">
-                            <div className="sticky top-4">
-                                <InvestorDetailSection
-                                    investor={selectedInvestor}
-                                    onClose={handleCloseDetails}
-                                    meta={meta}
-                                />
-                            </div>
-                        </div>
-                    )}
-                </div>
+                )}
             </div>
         </div>
     );
