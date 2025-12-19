@@ -4,22 +4,33 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Loader2, ArrowRight, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowRight, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { API_BASE_URL } from "@/lib/api";
 import AuthSidePanel from "@/components/AuthSidePanel";
+import { PasswordStrengthIndicator } from "@/components/ui/PasswordStrengthIndicator";
+import { cn } from "@/lib/utils";
 
 const signupSchema = z.object({
-    name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-    email: z.string().email({ message: "Please enter a valid email address" }),
-    password: z.string().min(8, { message: "Password must be at least 8 characters" }),
+    name: z.string()
+        .min(2, { message: "Name must be at least 2 characters" })
+        .max(50, { message: "Name must be less than 50 characters" })
+        .regex(/^[a-zA-Z\s'-]+$/, { message: "Name can only contain letters, spaces, hyphens, and apostrophes" }),
+    email: z.string()
+        .email({ message: "Please enter a valid email address" })
+        .min(5, { message: "Email is too short" }),
+    password: z.string()
+        .min(8, { message: "Password must be at least 8 characters" })
+        .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
+        .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
+        .regex(/[0-9]/, { message: "Password must contain at least one number" })
+        .regex(/[^A-Za-z0-9]/, { message: "Password must contain at least one special character" }),
     confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -32,15 +43,18 @@ export default function SignupPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [serverError, setServerError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
 
     const {
         register,
         handleSubmit,
-        formState: { errors },
+        watch,
+        formState: { errors, isValid, touchedFields, dirtyFields },
     } = useForm<SignupFormValues>({
         resolver: zodResolver(signupSchema),
+        mode: "onChange",
         defaultValues: {
             name: "",
             email: "",
@@ -48,6 +62,19 @@ export default function SignupPage() {
             confirmPassword: "",
         },
     });
+
+    const passwordValue = watch("password");
+    const confirmPasswordValue = watch("confirmPassword");
+    const passwordsMatch = passwordValue && confirmPasswordValue && passwordValue === confirmPasswordValue;
+
+    // Helper function to determine field validation state
+    const getFieldState = (fieldName: keyof SignupFormValues) => {
+        const hasError = errors[fieldName];
+        const isTouched = touchedFields[fieldName];
+        const isDirty = dirtyFields[fieldName];
+        const isValidField = isDirty && !hasError;
+        return { hasError, isTouched, isDirty, isValidField };
+    };
 
     const onSubmit = async (data: SignupFormValues) => {
         setIsLoading(true);
@@ -114,42 +141,73 @@ export default function SignupPage() {
                         )}
 
                         <div className="space-y-4">
+                            {/* Full Name Field */}
                             <div className="space-y-2">
                                 <Label htmlFor="name">Full Name</Label>
-                                <Input
-                                    id="name"
-                                    type="text"
-                                    placeholder="John Doe"
-                                    className={`h-11 bg-background border-input ${errors.name ? "border-destructive focus:border-destructive" : ""}`}
-                                    {...register("name")}
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="name"
+                                        type="text"
+                                        placeholder="Enter your full name"
+                                        className={cn(
+                                            "h-11 bg-background border-input pr-10",
+                                            errors.name && "border-destructive focus:border-destructive",
+                                            getFieldState("name").isValidField && "border-green-500 focus:border-green-500"
+                                        )}
+                                        {...register("name")}
+                                    />
+                                    {getFieldState("name").isValidField && (
+                                        <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                                    )}
+                                </div>
                                 {errors.name && (
-                                    <p className="text-sm text-destructive font-medium">{errors.name.message}</p>
+                                    <p className="text-sm text-destructive font-medium flex items-center gap-1">
+                                        <X className="h-3.5 w-3.5" />
+                                        {errors.name.message}
+                                    </p>
                                 )}
                             </div>
 
+                            {/* Email Field */}
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="name@example.com"
-                                    className={`h-11 bg-background border-input ${errors.email ? "border-destructive focus:border-destructive" : ""}`}
-                                    {...register("email")}
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        placeholder="Enter your email"
+                                        className={cn(
+                                            "h-11 bg-background border-input pr-10",
+                                            errors.email && "border-destructive focus:border-destructive",
+                                            getFieldState("email").isValidField && "border-green-500 focus:border-green-500"
+                                        )}
+                                        {...register("email")}
+                                    />
+                                    {getFieldState("email").isValidField && (
+                                        <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                                    )}
+                                </div>
                                 {errors.email && (
-                                    <p className="text-sm text-destructive font-medium">{errors.email.message}</p>
+                                    <p className="text-sm text-destructive font-medium flex items-center gap-1">
+                                        <X className="h-3.5 w-3.5" />
+                                        {errors.email.message}
+                                    </p>
                                 )}
                             </div>
 
+                            {/* Password Field */}
                             <div className="space-y-2">
                                 <Label htmlFor="password">Password</Label>
                                 <div className="relative">
                                     <Input
                                         id="password"
                                         type={showPassword ? "text" : "password"}
-                                        placeholder="Create a password"
-                                        className={`h-11 bg-background border-input pr-10 ${errors.password ? "border-destructive focus:border-destructive" : ""}`}
+                                        placeholder="Enter password"
+                                        className={cn(
+                                            "h-11 bg-background border-input pr-10",
+                                            errors.password && "border-destructive focus:border-destructive",
+                                            getFieldState("password").isValidField && "border-green-500 focus:border-green-500"
+                                        )}
                                         {...register("password")}
                                     />
                                     <button
@@ -160,30 +218,64 @@ export default function SignupPage() {
                                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
                                 </div>
-                                {errors.password && (
-                                    <p className="text-sm text-destructive font-medium">{errors.password.message}</p>
-                                )}
+                                {/* Password Strength Indicator */}
+                                <PasswordStrengthIndicator password={passwordValue || ""} />
                             </div>
 
+                            {/* Confirm Password Field */}
                             <div className="space-y-2">
                                 <Label htmlFor="confirmPassword">Confirm Password</Label>
-                                <Input
-                                    id="confirmPassword"
-                                    type="password"
-                                    placeholder="Confirm your password"
-                                    className={`h-11 bg-background border-input ${errors.confirmPassword ? "border-destructive focus:border-destructive" : ""}`}
-                                    {...register("confirmPassword")}
-                                />
-                                {errors.confirmPassword && (
-                                    <p className="text-sm text-destructive font-medium">{errors.confirmPassword.message}</p>
+                                <div className="relative">
+                                    <Input
+                                        id="confirmPassword"
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        placeholder="Re-enter password"
+                                        className={cn(
+                                            "h-11 bg-background border-input pr-10",
+                                            errors.confirmPassword && "border-destructive focus:border-destructive",
+                                            passwordsMatch && "border-green-500 focus:border-green-500"
+                                        )}
+                                        {...register("confirmPassword")}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                                {/* Password Match Indicator */}
+                                {confirmPasswordValue && (
+                                    <p className={cn(
+                                        "text-sm font-medium flex items-center gap-1",
+                                        passwordsMatch ? "text-green-500" : "text-destructive"
+                                    )}>
+                                        {passwordsMatch ? (
+                                            <>
+                                                <Check className="h-3.5 w-3.5" />
+                                                Passwords match
+                                            </>
+                                        ) : (
+                                            <>
+                                                <X className="h-3.5 w-3.5" />
+                                                Passwords do not match
+                                            </>
+                                        )}
+                                    </p>
                                 )}
                             </div>
                         </div>
 
                         <Button
                             type="submit"
-                            className="w-full h-11 bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-all"
-                            disabled={isLoading}
+                            className={cn(
+                                "w-full h-11 font-semibold transition-all",
+                                isValid
+                                    ? "bg-orange-500 hover:bg-orange-600 text-white"
+                                    : "bg-orange-500/50 text-white/70 cursor-not-allowed"
+                            )}
+                            disabled={isLoading || !isValid}
                         >
                             {isLoading ? (
                                 <>
